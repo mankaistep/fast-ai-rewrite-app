@@ -15,15 +15,30 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { toast, Toaster } from "sonner"
 import { cn } from "@/lib/utils"
 import { Users, Menu, LayoutDashboard, LogOut, MessageSquare } from "lucide-react"
+import {signOut, useSession} from "next-auth/react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const pathname = usePathname()
     const router = useRouter()
+    const { data: session, status } = useSession()
 
-    const handleLogout = () => {
-        console.log("Logging out...")
-        // Add your logout logic here
+    // Profile
+    const [userDisplayName, setUserDisplayName] = useState("")
+    const [userEmail, setUserEmail] = useState("")
+    const [userAvatar, setUserAvatar] = useState("")
+
+    useEffect(() => {
+        if (status === 'authenticated' && session) {
+            console.log(session)
+            setUserDisplayName(session.user?.name || "Mirai Kuriyama")
+            setUserEmail(session.user?.email || "yourfemai@gmail.com")
+            setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
+        }
+    }, [session, status])
+
+    const handleLogout = async () => {
+        await signOut({ callbackUrl: "/a/dashboard" })
     }
 
     const handleNavigation = (href: string) => {
@@ -73,12 +88,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <Button variant="ghost" className="p-0">
                                     <div className="flex items-center gap-2">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src="/favicon.ico?height=32&width=32" alt="User" />
-                                            <AvatarFallback>U</AvatarFallback>
+                                            <AvatarImage src={userAvatar} alt="User" />
+                                            <AvatarFallback>
+                                                {session?.user?.name?.[0]?.toUpperCase() || 'U'}
+                                            </AvatarFallback>
                                         </Avatar>
                                         <div className="hidden md:block text-left">
-                                            <p className="text-sm font-medium">John Doe</p>
-                                            <p className="text-xs text-muted-foreground">john.doe@example.com</p>
+                                            <p className="text-sm font-medium">{userDisplayName}</p>
+                                            <p className="text-xs text-muted-foreground">{userEmail}</p>
                                         </div>
                                     </div>
                                 </Button>
