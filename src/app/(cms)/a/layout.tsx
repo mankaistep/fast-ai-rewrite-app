@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
-import Link from "next/link"
+import React, {useEffect, useState} from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -74,7 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <Button variant="ghost" className="p-0">
                                     <div className="flex items-center gap-2">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
+                                            <AvatarImage src="/favicon.ico?height=32&width=32" alt="User" />
                                             <AvatarFallback>U</AvatarFallback>
                                         </Avatar>
                                         <div className="hidden md:block text-left">
