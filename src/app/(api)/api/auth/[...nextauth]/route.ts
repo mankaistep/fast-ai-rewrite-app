@@ -1,6 +1,10 @@
-import NextAuth from "next-auth"
+import NextAuth, {Account, Profile, User} from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import type { NextAuthOptions } from "next-auth"
+import { PrismaClient } from "@prisma/client"
+import {AdapterUser} from "next-auth/adapters";
+
+const prisma = new PrismaClient()
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -18,11 +22,28 @@ export const authOptions: NextAuthOptions = {
         signIn: "/auth",
     },
     callbacks: {
-        async session({ session, token }) {
-            if (session.user) {
-                // session.user.id = token.sub as string
+        async signIn({ user, account, profile, email, credentials }) {
+            // After auth
+            if (!email?.verificationRequest) {
+                // Save to db
+                await prisma.user.upsert({
+                    where: {
+                        googleId: user.id
+                    },
+                    create: {
+                        name: user.name,
+                        email: user.email,
+                        image: user.image,
+                        googleId: user.id
+                    },
+                    update: {
+                        name: user.name,
+                        email: user.email,
+                        image: user.image
+                    }
+                })
             }
-            return session
+            return true
         },
         async jwt({ token, user }) {
             if (user) {
