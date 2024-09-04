@@ -1,10 +1,7 @@
-import NextAuth, {Account, Profile, User} from "next-auth"
+import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import type { NextAuthOptions } from "next-auth"
-import { PrismaClient } from "@prisma/client"
-import {AdapterUser} from "next-auth/adapters";
-
-const prisma = new PrismaClient()
+import prisma from "@/lib/prisma"
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -22,7 +19,7 @@ export const authOptions: NextAuthOptions = {
         signIn: "/auth",
     },
     callbacks: {
-        async signIn({ user, account, profile, email, credentials }) {
+        async signIn({ user, email }) {
             // After auth
             if (!email?.verificationRequest) {
                 // Save to db
