@@ -1,27 +1,27 @@
 "use client"
 
 import React, {useEffect, useState} from "react"
-import { usePathname, useRouter } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import {usePathname, useRouter} from "next/navigation"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
+import {Button} from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { toast, Toaster } from "sonner"
-import { cn } from "@/lib/utils"
-import { Users, Menu, LayoutDashboard, LogOut, MessageSquare } from "lucide-react"
+import {ScrollArea} from "@/components/ui/scroll-area"
+import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger} from "@/components/ui/sheet"
+import {toast, Toaster} from "sonner"
+import {cn} from "@/lib/utils"
+import {Users, Menu, LayoutDashboard, LogOut, MessageSquare, ArrowLeft} from "lucide-react"
 import {signOut, useSession} from "next-auth/react";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({children}: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const pathname = usePathname()
     const router = useRouter()
-    const { data: session, status } = useSession()
+    const {data: session, status} = useSession()
 
     // Profile
     const [userDisplayName, setUserDisplayName] = useState("")
@@ -30,7 +30,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     useEffect(() => {
         if (status === 'authenticated' && session) {
-            console.log(session)
             setUserDisplayName(session.user?.name || "Mirai Kuriyama")
             setUserEmail(session.user?.email || "yourfemai@gmail.com")
             setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
@@ -38,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, [session, status])
 
     const handleLogout = async () => {
-        await signOut({ callbackUrl: "/a/dashboard" })
+        await signOut({callbackUrl: "/a/dashboard"})
     }
 
     const handleNavigation = (href: string) => {
@@ -57,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex h-screen overflow-hidden">
             {/* Sidebar for larger screens */}
             <aside className="hidden w-64 flex-col overflow-y-auto border-r bg-gray-100/40 lg:flex">
-                <SidebarContent pathname={pathname} onLogout={handleLogout} onNavigation={handleNavigation} />
+                <SidebarContent pathname={pathname} onLogout={handleLogout} onNavigation={handleNavigation}/>
             </aside>
 
             <div className="flex flex-1 flex-col overflow-hidden">
@@ -67,7 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                             <SheetTrigger asChild>
                                 <Button variant="ghost" size="icon" className="lg:hidden">
-                                    <Menu className="h-6 w-6" />
+                                    <Menu className="h-6 w-6"/>
                                     <span className="sr-only">Toggle sidebar</span>
                                 </Button>
                             </SheetTrigger>
@@ -75,7 +74,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <SheetHeader>
                                     <SheetTitle>Navigation</SheetTitle>
                                 </SheetHeader>
-                                <SidebarContent pathname={pathname} onLogout={handleLogout} onNavigation={handleNavigation} />
+                                <SidebarContent pathname={pathname} onLogout={handleLogout}
+                                                onNavigation={handleNavigation}/>
                             </SheetContent>
                         </Sheet>
                         <div className="ml-4 lg:ml-0">
@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <Button variant="ghost" className="p-0">
                                     <div className="flex items-center gap-2">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src={userAvatar} alt="User" />
+                                            <AvatarImage src={userAvatar} alt="User"/>
                                             <AvatarFallback>
                                                 {session?.user?.name?.[0]?.toUpperCase() || 'U'}
                                             </AvatarFallback>
@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={handleLogout}>
-                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <LogOut className="mr-2 h-4 w-4"/>
                                     <span>Log out</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -115,16 +115,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {children}
                 </main>
             </div>
-            <Toaster />
+            <Toaster/>
         </div>
     )
 }
 
-function SidebarContent({ pathname, onLogout, onNavigation }: { pathname: string; onLogout: () => void; onNavigation: (href: string) => void }) {
+function SidebarContent({pathname, onLogout, onNavigation}: {
+    pathname: string;
+    onLogout: () => void;
+    onNavigation: (href: string) => void
+}) {
     const navItems = [
-        { href: "/a/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/a/agents", label: "Agents", icon: Users },
-        { href: "/a/chat", label: "Chat", icon: MessageSquare },
+        {href: "/a/dashboard", label: "Dashboard", icon: LayoutDashboard},
+        {href: "/a/agents", label: "Agents", icon: Users},
+        {href: "/a/chat", label: "Chat", icon: MessageSquare},
     ]
 
     return (
@@ -148,7 +152,7 @@ function SidebarContent({ pathname, onLogout, onNavigation }: { pathname: string
                                 }
                             )}
                         >
-                            <item.icon className="mr-2 h-4 w-4" />
+                            <item.icon className="mr-2 h-4 w-4"/>
                             {item.label}
                         </a>
                     ))}
@@ -156,7 +160,7 @@ function SidebarContent({ pathname, onLogout, onNavigation }: { pathname: string
             </ScrollArea>
             <div className="mt-auto px-4 py-2">
                 <Button variant="ghost" className="w-full justify-start" onClick={onLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="mr-2 h-4 w-4"/>
                     Log out
                 </Button>
             </div>
