@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         if (id) {
             const agent = await prisma.agent.findUnique({
                 where: { id: Number(id), userId: user.id },
-                include: { user: true, prompts: true, activities: true },
+                include: { user: true, activities: true },
             });
 
             if (!agent) {
