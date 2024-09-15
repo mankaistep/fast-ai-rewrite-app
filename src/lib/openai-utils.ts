@@ -76,7 +76,7 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
             'OpenAI-Project': `${OPENAI_PROJECT_ID}`
         },
         body: JSON.stringify({
-            model: "gpt-4o",
+            model: "gpt-4o-mini",
             messages: [
                 {
                     role: "system",
