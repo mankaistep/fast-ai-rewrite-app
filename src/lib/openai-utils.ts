@@ -111,8 +111,9 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
         const receivedAt = Date.now();
         const suggestion = data.choices[0].message.content;
 
-        console.log(`[FastAI Rewrite] <${agent.name}> + <${prompt}> + <${original}> => <<${suggestion}>>`)
-        console.log(`[FastAI Rewrite] Took ${receivedAt - sentAt}ms`)
+        const usageToken = data.usage?.total_tokens ?? 0
+
+        console.log(`[FastAI Rewrite] ${receivedAt - sentAt}ms, ${usageToken} tokens, generated <<${suggestion}>>`)
 
         setTimeout(async () => {
             await prisma.activity.create({
