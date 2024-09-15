@@ -2,16 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/(api)/api/auth/[...nextauth]/route";
+import {getToken} from "next-auth/jwt";
 
 // GET all agents or a single agent
 export async function GET(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions)
-        if (!session || !session.user) {
+        const token = await getToken({
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const userEmail = session.user.email;
+        // @ts-ignore
+        const userEmail = token.email
 
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -51,11 +57,25 @@ export async function GET(request: NextRequest) {
 // POST a new agent
 export async function POST(request: NextRequest) {
     try {
+        const token = await getToken({
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        console.log(token)
+
+        // @ts-ignore
+        const userEmail = token.email
+
         const body = await request.json();
-        const { name, role, tone, description, status, userEmail } = body;
+        const { name, role, tone, description, status} = body;
 
         if (!name || !role || !userEmail) {
-            return NextResponse.json({ error: 'Name, role, and userEmail are required' }, { status: 400 });
+            return NextResponse.json({ error: `Name, role, and userEmail are required. Current values: ${name}, ${role}, ${userEmail}` }, { status: 400 });
         }
 
         // Find the user by email
@@ -88,6 +108,30 @@ export async function POST(request: NextRequest) {
 // PUT (update) an agent
 export async function PUT(request: NextRequest) {
     try {
+        const token = await getToken({
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // @ts-ignore
+        const userEmail = token.email
+        if (!userEmail) {
+            return NextResponse.json({ error: 'Unauthorized, no email?' }, { status: 401 });
+        }
+
+        // Find the user by email
+        const user = await prisma.user.findUnique({
+            where: { email: userEmail },
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
         const body = await request.json();
         const { id, name, role, tone, description, status } = body;
 
@@ -96,7 +140,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const updatedAgent = await prisma.agent.update({
-            where: { id: Number(id) },
+            where: { id: Number(id), userId: user.id },
             data: { name, role, tone, description, status },
         });
 
@@ -110,6 +154,30 @@ export async function PUT(request: NextRequest) {
 // DELETE an agent
 export async function DELETE(request: NextRequest) {
     try {
+        const token = await getToken({
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // @ts-ignore
+        const userEmail = token.email
+        if (!userEmail) {
+            return NextResponse.json({ error: 'Unauthorized, no email?' }, { status: 401 });
+        }
+
+        // Find the user by email
+        const user = await prisma.user.findUnique({
+            where: { email: userEmail },
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
@@ -118,7 +186,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         await prisma.agent.delete({
-            where: { id: Number(id) },
+            where: { id: Number(id), userId: user.id },
         });
 
         return NextResponse.json({ message: 'Agent deleted successfully' });

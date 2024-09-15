@@ -20,9 +20,8 @@ export const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async signIn({ user, email }) {
-            // After auth
+            console.log("Sign in callback", { user, email });
             if (!email?.verificationRequest) {
-                // Save to db
                 await prisma.user.upsert({
                     where: {
                         googleId: user.id
@@ -48,7 +47,15 @@ export const authOptions: NextAuthOptions = {
             }
             return token
         },
+        async session({ session, token }) {
+            if (session.user) {
+                // @ts-ignore
+                session.user.id = token.id as string
+            }
+            return session
+        }
     },
+    debug: true, // Enable debug messages
     secret: process.env.NEXTAUTH_SECRET,
 }
 
