@@ -37,5 +37,6 @@ export default withAuth(middleware, {
 })
 
 export const config = {
-    matcher: ["/a/:path*", "/api/:path*"]
+    // matcher: ["/a/:path*", "/api/:path*"]
+    matcher: ["/a/:path*"]
 }
