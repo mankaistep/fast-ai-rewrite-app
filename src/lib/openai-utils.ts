@@ -109,7 +109,7 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
         const response = await fetch('https://api.openai.com/v1/chat/completions', request);
         const data = await response.json();
         const receivedAt = Date.now();
-
+        console.log('data', data);
         const suggestion = data.choices[0].message.content;
 
         console.log(`[FastAI Rewrite] <${agent.name}> + <${prompt}> + <${original}> => <<${suggestion}>>`)
