@@ -2,36 +2,45 @@ import { NextResponse } from "next/server"
 import { NextRequestWithAuth, withAuth } from "next-auth/middleware"
 import { getToken } from "next-auth/jwt"
 
+const CORS_PATHS = ["/api/agents", "/api/rewrite/generate", "/api/rewrite/mark-as-approved"]
+
 async function middleware(req: NextRequestWithAuth) {
-    console.log("Middleware running on:", req.nextUrl.pathname);
+    console.log("Middleware running on:", req.method, req.nextUrl.pathname);
 
-    // Allow CORS for /api/agents for testing
-    if (req.nextUrl.pathname === '/api/agents') {
-        const response = NextResponse.next()
-        response.headers.set('Access-Control-Allow-Origin', '*')
-        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-        // Handle preflight requests
+    if (CORS_PATHS.includes(req.nextUrl.pathname)) {
         if (req.method === 'OPTIONS') {
-            return response
+            return new NextResponse(null, {
+                status: 204
+            });
+        } else {
+            const response = NextResponse.next();
+            response.headers.set('Access-Control-Allow-Origin', '*');
+            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            return response;
         }
     }
 
-    // Verify session
+    // Verify session for non-CORS paths
     const session = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
     if (session) {
         req.nextauth = { token: session }
+        console.log("Session verified for:", req.nextUrl.pathname);
+    } else {
+        console.log("No session for:", req.nextUrl.pathname);
     }
 
-    // Always return NextResponse.next() to allow withAuth to make the final decision
     return NextResponse.next()
 }
 
 export default withAuth(middleware, {
     callbacks: {
-        authorized: ({ token }) => {
-            return !!token; // Return true if a token exists
+        authorized: ({ token, req }) => {
+            console.log("Authorizing request for:", req.nextUrl.pathname);
+            if (req.method === 'OPTIONS' || CORS_PATHS.includes(req.nextUrl.pathname)) {
+                return true;
+            }
+            return !!token;
         },
     },
 })
