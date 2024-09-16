@@ -1,27 +1,18 @@
 import prisma from "./prisma";
+import { Agent as PrismaAgent } from "@prisma/client";
 import {randomUUID} from "node:crypto";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_ORGANIZATION_ID = process.env.OPENAI_ORGANIZATION_ID
 const OPENAI_PROJECT_ID = process.env.OPENAI_PROJECT_ID
 
-export async function sendRewriteRequest(agentId: number, original: string, prompt: string) : Promise<{
+export async function sendRewriteRequest(agent: any, original: string, prompt: string) : Promise<{
     activityId: string,
     agentId: number,
     original: string,
     prompt: string,
     suggestion: string
 }> {
-    // Check valid agent
-    const agent = await prisma.agent.findFirst({
-        where: {
-            id: agentId
-        },
-        include: {
-            activities: true
-        }
-    })
-
     if (!agent) {
         throw new Error("Agent not found")
     }
@@ -119,7 +110,7 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
             await prisma.activity.create({
                 data: {
                     id: newActivityId,
-                    agentId: agentId,
+                    agentId: agent.id,
                     input: original,
                     prompt: prompt,
                     output: suggestion,
@@ -130,7 +121,7 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
 
         return {
             activityId: newActivityId,
-            agentId: agentId,
+            agentId: agent.id,
             original: original,
             prompt: prompt,
             suggestion: suggestion
@@ -139,10 +130,21 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
         console.log(error);
         return {
             activityId: newActivityId,
-            agentId: agentId,
+            agentId: agent.id,
             original: original,
             prompt: prompt,
             suggestion: "Oops, some error happened :("
         }
     }
+}
+
+export function markActivityAsApproved(activityId: string) {
+    prisma.activity.update({
+        where: {
+            id: activityId
+        },
+        data: {
+            result: true
+        }
+    })
 }

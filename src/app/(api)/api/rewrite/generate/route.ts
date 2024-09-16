@@ -2,24 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendRewriteRequest } from '@/lib/openai-utils';
 import {getToken} from "next-auth/jwt";
 import prisma from "@/lib/prisma";
+import {getUser} from "@/lib/auth-utils";
 
 export async function POST(req: NextRequest) {
     try {
-        const token = await getToken({
-            req: req,
-            secret: process.env.NEXTAUTH_SECRET
-        })
+        const user = await getUser(req);
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        // If fails => user ~ error
+        if (user instanceof NextResponse) {
+            return user; // or throw an error, depending on your use case
         }
-
-        // @ts-ignore
-        const userEmail = token.email
-
-        const user = await prisma.user.findFirst({
-            where: { email: userEmail },
-        })
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -47,7 +39,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Call the sendRewriteRequest function
-        const result = await sendRewriteRequest(agentId, original, prompt);
+        const result = await sendRewriteRequest(agent, original, prompt);
 
         // Return the result
         return NextResponse.json(result);

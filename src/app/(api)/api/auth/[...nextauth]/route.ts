@@ -20,7 +20,6 @@ export const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async signIn({ user, email }) {
-            console.log("Sign in callback", { user, email });
             if (!email?.verificationRequest) {
                 await prisma.user.upsert({
                     where: {
@@ -55,7 +54,6 @@ export const authOptions: NextAuthOptions = {
             return session
         }
     },
-    debug: true, // Enable debug messages
     secret: process.env.NEXTAUTH_SECRET,
 }
 
