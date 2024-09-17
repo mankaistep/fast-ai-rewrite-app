@@ -17,7 +17,7 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
         throw new Error("Agent not found")
     }
 
-    const agentActivities = agent.activities;
+    const agentActivities = agent.activities ? agent.activities : [];
 
     // Create instruction messages based on activities
     const messages: {

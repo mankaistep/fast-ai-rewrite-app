@@ -9,9 +9,14 @@ async function middleware(req: NextRequestWithAuth) {
 
     if (CORS_PATHS.includes(req.nextUrl.pathname)) {
         if (req.method === 'OPTIONS') {
-            return new NextResponse(null, {
+            const response = new NextResponse(null, {
                 status: 204
             });
+            response.headers.set('Access-Control-Allow-Origin', '*');
+            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+            return response;
         } else {
             const response = NextResponse.next();
             response.headers.set('Access-Control-Allow-Origin', '*');
