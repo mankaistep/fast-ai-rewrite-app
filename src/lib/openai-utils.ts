@@ -138,13 +138,13 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
     }
 }
 
-export function markActivityAsApproved(activityId: string) {
-    prisma.activity.update({
+export async function markActivityAsApproved(activityId: string) {
+    return prisma.activity.update({
         where: {
             id: activityId
         },
         data: {
             result: true
         }
-    })
+    });
 }

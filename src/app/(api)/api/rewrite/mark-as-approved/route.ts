@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from "next/server";
-import prisma from "@/lib/prisma";
 import {getUser} from "@/lib/auth-utils";
+import {markActivityAsApproved} from "@/lib/openai-utils";
 
 export async function POST(request: NextRequest) {
     try {
@@ -22,14 +22,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Activity ID is required' }, { status: 400 });
         }
 
-        await prisma.activity.update({
-            where: {
-                id: activityId
-            },
-            data: {
-                result: true
-            }
-        });
+        await markActivityAsApproved(activityId)
 
         return NextResponse.json({ message: 'Activity marked as approved' });
     } catch (error) {
