@@ -30,14 +30,14 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
 
         const approvalMessage = approved ?
             "I like it, please continue next time" :
-            "No, I don't like it, please improve next time"
+            "No, I don't like it, please improve next time and don't generate the same response if input and prompt are the same"
 
         const additionalMessages = [
             {
                 role: "user",
                 content: `
-                    message to rewrite: ${currentActivity.input}.
-                    note when rewrite: ${currentActivity.prompt}.
+                    input: ${currentActivity.input}.
+                    prompt: ${currentActivity.prompt}.
                 `
             },
             {
@@ -74,7 +74,6 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
                     content: `
                         you are a ${agent.role} with ${agent.tone} tone
                         also additional description of you: ${agent.description}
-                        please rewrite the chat I provide in the last message
                         the prompt will include the message to rewrite and any notes for the rewrite.
                         if note when rewrite empty, please ignore
                         if previous generated response is empty, please ignore
@@ -84,13 +83,13 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
                 {
                     role: "user",
                     content: `
-                        based on the messages you've written. rewrite better and different suggestion
-                        message to rewrite: ${original}.
-                        note when rewrite: ${prompt}.
+                        input: ${original}.
+                        prompt: ${prompt}
+                        (if the latest request has the same input, the prompt is for the latest response, not input)
                     `
                 }
             ],
-            temperature: 0.5
+            temperature: 1.2
         })
     }
 
