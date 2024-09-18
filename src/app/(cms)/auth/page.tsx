@@ -12,12 +12,20 @@ export default function LoginPage() {
     const router = useRouter()
 
     const handleGoogleLogin = async () => {
+        const url = new URL(window.location.href);
+        const callbackUrl = url.searchParams.get('callbackUrl');
+
         try {
-            await signIn("google", {
-                callbackUrl: "/a/dashboard"
-            })
-        }
-        catch (error) {
+            if (callbackUrl) {
+                await signIn("google", {
+                    callbackUrl: callbackUrl
+                })
+            } else {
+                await signIn("google", {
+                    callbackUrl: "/a/dashboard"
+                })
+            }
+        } catch (error) {
             console.error("Login failed", error)
             setError("Failed to login. Please try again.")
         }

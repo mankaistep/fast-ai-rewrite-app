@@ -1,32 +1,23 @@
 import prisma from "./prisma";
+import { Agent as PrismaAgent } from "@prisma/client";
 import {randomUUID} from "node:crypto";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_ORGANIZATION_ID = process.env.OPENAI_ORGANIZATION_ID
 const OPENAI_PROJECT_ID = process.env.OPENAI_PROJECT_ID
 
-export async function sendRewriteRequest(agentId: number, original: string, prompt: string) : Promise<{
+export async function sendRewriteRequest(agent: any, original: string, prompt: string) : Promise<{
     activityId: string,
     agentId: number,
     original: string,
     prompt: string,
     suggestion: string
 }> {
-    // Check valid agent
-    const agent = await prisma.agent.findFirst({
-        where: {
-            id: agentId
-        },
-        include: {
-            activities: true
-        }
-    })
-
     if (!agent) {
         throw new Error("Agent not found")
     }
 
-    const agentActivities = agent.activities;
+    const agentActivities = agent.activities ? agent.activities : [];
 
     // Create instruction messages based on activities
     const messages: {
@@ -39,14 +30,14 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
 
         const approvalMessage = approved ?
             "I like it, please continue next time" :
-            "No, I don't like it, please improve next time"
+            "No, I don't like it, please improve next time and don't generate the same response if input and prompt are the same"
 
         const additionalMessages = [
             {
                 role: "user",
                 content: `
-                    message to rewrite: ${currentActivity.input}.
-                    note when rewrite: ${currentActivity.prompt}.
+                    input: ${currentActivity.input}.
+                    prompt: ${currentActivity.prompt}.
                 `
             },
             {
@@ -83,7 +74,6 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
                     content: `
                         you are a ${agent.role} with ${agent.tone} tone
                         also additional description of you: ${agent.description}
-                        please rewrite the chat I provide in the last message
                         the prompt will include the message to rewrite and any notes for the rewrite.
                         if note when rewrite empty, please ignore
                         if previous generated response is empty, please ignore
@@ -93,13 +83,13 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
                 {
                     role: "user",
                     content: `
-                        based on the messages you've written. rewrite better and different suggestion
-                        message to rewrite: ${original}.
-                        note when rewrite: ${prompt}.
+                        input: ${original}.
+                        prompt: ${prompt}
+                        (if the latest request has the same input, the prompt is for the latest response, not input)
                     `
                 }
             ],
-            temperature: 0.5
+            temperature: 1.2
         })
     }
 
@@ -119,7 +109,7 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
             await prisma.activity.create({
                 data: {
                     id: newActivityId,
-                    agentId: agentId,
+                    agentId: agent.id,
                     input: original,
                     prompt: prompt,
                     output: suggestion,
@@ -130,7 +120,7 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
 
         return {
             activityId: newActivityId,
-            agentId: agentId,
+            agentId: agent.id,
             original: original,
             prompt: prompt,
             suggestion: suggestion
@@ -139,10 +129,21 @@ export async function sendRewriteRequest(agentId: number, original: string, prom
         console.log(error);
         return {
             activityId: newActivityId,
-            agentId: agentId,
+            agentId: agent.id,
             original: original,
             prompt: prompt,
             suggestion: "Oops, some error happened :("
         }
     }
+}
+
+export async function markActivityAsApproved(activityId: string) {
+    return prisma.activity.update({
+        where: {
+            id: activityId
+        },
+        data: {
+            result: true
+        }
+    });
 }
