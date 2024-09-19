@@ -1,12 +1,77 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Users, CheckCircle, BarChart } from "lucide-react"
+import { useSession } from "next-auth/react"
+
+type Metric = {
+    current: number;
+    previous: number;
+    unit: 'month' | 'week' | 'day';
+};
+
+type DashboardMetrics = {
+    activeAgents: Metric;
+    successfulRewrites: Metric;
+    totalRequests: Metric;
+};
 
 export default function DashboardPage() {
+    const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const { data: session } = useSession();
+
+    useEffect(() => {
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('/api/metrics');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch dashboard metrics');
+                }
+                const data = await response.json();
+                setMetrics(data);
+            } catch (err) {
+                setError('An error occurred while fetching dashboard metrics');
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchMetrics();
+    }, []);
+
+    function calculatePercentageChange(current: number, previous: number) {
+        return ((current - previous) / previous * 100).toFixed(1);
+    }
+
+    function calculateSuccessRate(successfulRewrites: number, totalRequests: number) {
+        if (totalRequests === 0) {
+            return 0;
+        }
+        return ((successfulRewrites / totalRequests) * 100).toFixed(1);
+    }
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
+
+    const percentageChange = calculatePercentageChange(metrics?.totalRequests.current || 0, metrics?.totalRequests.previous || 1);
+    const changePrefix = parseFloat(percentageChange) > 0 ? '+' : '';
+
     return (
         <div className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            <h2 className="text-3xl font-bold tracking-tight">
+                Dashboard
+            </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -16,7 +81,7 @@ export default function DashboardPage() {
                         <Users className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">25</div>
+                        <div className="text-2xl font-bold">{metrics?.activeAgents.current}</div>
                     </CardContent>
                     <CardFooter>
                         <Button variant="ghost" className="w-full justify-start" asChild>
@@ -35,11 +100,11 @@ export default function DashboardPage() {
                         <CheckCircle className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,234</div>
+                        <div className="text-2xl font-bold">{metrics?.successfulRewrites.current}</div>
                     </CardContent>
                     <CardFooter>
                         <p className="text-xs text-muted-foreground">
-                            +20.1% from last month
+                            Success rate: {calculateSuccessRate(metrics?.successfulRewrites.current || 0, metrics?.totalRequests.current || 1)}%
                         </p>
                     </CardFooter>
                 </Card>
@@ -51,11 +116,11 @@ export default function DashboardPage() {
                         <BarChart className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12,345</div>
+                        <div className="text-2xl font-bold">{metrics?.totalRequests.current}</div>
                     </CardContent>
                     <CardFooter>
                         <p className="text-xs text-muted-foreground">
-                            +15% from last week
+                            {changePrefix}{percentageChange}% from last {metrics?.totalRequests.unit}
                         </p>
                     </CardFooter>
                 </Card>
