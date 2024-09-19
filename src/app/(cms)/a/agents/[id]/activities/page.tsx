@@ -90,6 +90,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
     const [activities, setActivities] = useState<ActivityType[]>([])
 
     const [isLoading, setIsLoading] = useState(false)
+    const [isApproving, setIsApproving] = useState<string | null>(null)
     const { toast } = useToast()
     const [error, setError] = useState<string | null>(null)
 
@@ -134,8 +135,13 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
 
     const handleApprove = async (activityId: string) => {
         try {
-            const response = await fetch(`/api/agents/activities/${activityId}/approve`, {
+            setIsApproving(activityId)
+            const response = await fetch('/api/rewrite/mark-as-approved', {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ activityId }),
             })
             if (!response.ok) {
                 throw new Error('Failed to approve activity')
@@ -144,8 +150,8 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                 activity.id === activityId ? { ...activity, result: true } : activity
             ))
             toast({
-                title: "Activity Approved",
-                description: "The activity has been marked as approved.",
+                title: "Activity approved",
+                description: `${agent.name} will generate more suggestions like this`,
             })
         } catch (error) {
             console.error('Error approving activity:', error)
@@ -154,6 +160,8 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                 description: "Failed to approve the activity. Please try again.",
                 variant: "destructive",
             })
+        } finally {
+            setIsApproving(null)
         }
     }
 
@@ -175,7 +183,6 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                     </Button>
                     <h1 className="text-2xl font-bold">{agent ? agent.name : 'Agent'}&apos;s activities</h1>
                 </div>
-                <Activity className="h-6 w-6 text-gray-400" />
             </div>
 
             {error && (
@@ -224,7 +231,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                                     <TableCell>
                                         {activity.result ? (
                                             <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                                                Approved
+                                                Accepted
                                             </Badge>
                                         ) : (
                                             <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200">
@@ -238,10 +245,15 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleApprove(activity.id)}
+                                                disabled={isApproving === activity.id}
                                                 className="flex items-center space-x-1"
                                             >
-                                                <Check className="h-4 w-4" />
-                                                <span>Mark as approved</span>
+                                                {isApproving === activity.id ? (
+                                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                                ) : (
+                                                    <Check className="h-4 w-4" />
+                                                )}
+                                                <span>{isApproving === activity.id ? '...' : 'Accept'}</span>
                                             </Button>
                                         )}
                                     </TableCell>
@@ -252,25 +264,25 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                 </Table>
             </div>
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-center items-center mt-4 space-x-2">
                 <Button
                     onClick={() => handlePageChange(pagination.currentPage - 1)}
                     disabled={!pagination.hasPreviousPage || isLoading}
                     variant="outline"
+                    size="sm"
                 >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
-                    Previous
+                    <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span>
+                <span className="text-sm">
                     Page {pagination.currentPage} of {pagination.totalPages}
                 </span>
                 <Button
                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                     disabled={!pagination.hasNextPage || isLoading}
                     variant="outline"
+                    size="sm"
                 >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>
         </div>
