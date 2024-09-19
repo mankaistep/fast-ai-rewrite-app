@@ -127,7 +127,11 @@ export default function AgentsPage() {
                     <TableRow
                         key={agent.id}
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleRowClick(agent.id)}
+                        onClick={(e) => {
+                            if (!(e.target as HTMLElement).closest('button')) {
+                                handleRowClick(agent.id)
+                            }
+                        }}
                     >
                         <TableCell>
                             <Avatar>
@@ -152,11 +156,16 @@ export default function AgentsPage() {
                                         <span className="sr-only">Edit</span>
                                     </Link>
                                 </Button>
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/a/agents/${agent.id}/activities`}>
-                                        <Activity className="h-4 w-4" />
-                                        <span className="sr-only">View activities</span>
-                                    </Link>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        router.push(`/a/agents/${agent.id}/activities`)
+                                    }}
+                                >
+                                    <Activity className="h-4 w-4" />
+                                    <span className="sr-only">View activities</span>
                                 </Button>
                             </div>
                         </TableCell>
