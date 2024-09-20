@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {ScrollArea} from "@/components/ui/scroll-area"
 import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger} from "@/components/ui/sheet"
-import {toast, Toaster} from "sonner"
 import {cn} from "@/lib/utils"
 import {Users, Menu, LayoutDashboard, LogOut, MessageSquare, ArrowLeft} from "lucide-react"
 import {signOut, useSession} from "next-auth/react";
@@ -41,15 +40,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
     }
 
     const handleNavigation = (href: string) => {
-        if (href === "/a/chat") {
-            toast("Coming soon!", {
-                description: "This feature is not yet available.",
-                duration: 3000,
-            })
-        } else {
-            // Navigate to the clicked route
-            router.push(href)
-        }
+        router.push(href)
     }
 
     return (
@@ -115,7 +106,6 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
                     {children}
                 </main>
             </div>
-            <Toaster/>
         </div>
     )
 }

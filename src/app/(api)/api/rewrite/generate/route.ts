@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
 
         // Extract the required fields from the request body
-        const { agentId, original, prompt } = body;
+        const { agentId, original, prompt, isChat } = body;
 
         const agent = await prisma.agent.findUnique({
             where: { id: agentId, userId: user.id },
@@ -37,9 +37,12 @@ export async function POST(req: NextRequest) {
         if (typeof prompt !== 'string') {
             return NextResponse.json({ error: 'Invalid prompt' }, { status: 400 });
         }
+        if (typeof isChat !== 'boolean') {
+            return NextResponse.json({ error: 'Invalid isChat' }, { status: 400 });
+        }
 
         // Call the sendRewriteRequest function
-        const result = await sendRewriteRequest(agent, original, prompt);
+        const result = await sendRewriteRequest(agent, original, prompt, isChat);
 
         // Return the result
         return NextResponse.json(result);

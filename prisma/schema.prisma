@@ -36,9 +36,23 @@ model Agent {
 
   // Relations
   activities  Activity[]
+  chatActivities ChatActivity[]
 }
 
 model Activity {
+  id          String      @id @default(uuid())
+  prompt      String?
+  input       String
+  output      String
+  result      Boolean
+  timestamp   DateTime @default(now())
+
+  // Relations
+  agentId     Int
+  agent       Agent    @relation(fields: [agentId], references: [id])
+}
+
+model ChatActivity {
   id          String      @id @default(uuid())
   prompt      String?
   input       String

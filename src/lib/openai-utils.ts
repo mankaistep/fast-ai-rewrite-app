@@ -6,7 +6,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_ORGANIZATION_ID = process.env.OPENAI_ORGANIZATION_ID
 const OPENAI_PROJECT_ID = process.env.OPENAI_PROJECT_ID
 
-export async function sendRewriteRequest(agent: any, original: string, prompt: string) : Promise<{
+export async function sendRewriteRequest(agent: any, original: string, prompt: string, isChat: boolean) : Promise<{
     activityId: string,
     agentId: number,
     original: string,
@@ -105,17 +105,32 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
 
         console.log(`[FastAI Rewrite] ${receivedAt - sentAt}ms, ${usageToken} tokens, generated <<${suggestion}>>`)
 
+        // Save to activity if it's rewrite, chatActivity if it's chat
         setTimeout(async () => {
-            await prisma.activity.create({
-                data: {
-                    id: newActivityId,
-                    agentId: agent.id,
-                    input: original,
-                    prompt: prompt,
-                    output: suggestion,
-                    result: false
-                }
-            })
+            if (isChat) {
+                await prisma.chatActivity.create({
+                    data: {
+                        id: newActivityId,
+                        agentId: agent.id,
+                        input: original,
+                        prompt: prompt,
+                        output: suggestion,
+                        result: false
+                    }
+                })
+            }
+            else {
+                await prisma.activity.create({
+                    data: {
+                        id: newActivityId,
+                        agentId: agent.id,
+                        input: original,
+                        prompt: prompt,
+                        output: suggestion,
+                        result: false
+                    }
+                })
+            }
         }, 10)
 
         return {
