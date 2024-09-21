@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Check, Copy, UserRound, X, Loader2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { Agent } from "@prisma/client"
 
 type Chat = {
@@ -21,6 +22,7 @@ type Chat = {
     rejected: boolean | null
     timestamp: string
     agentId: number
+    isLoading?: boolean
 }
 
 export default function ChatPage() {
@@ -32,9 +34,26 @@ export default function ChatPage() {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const chatContainerRef = useRef<HTMLDivElement>(null)
+    const scrollAreaRef = useRef<HTMLDivElement>(null)
 
     const handleSubmit = async () => {
         setIsLoading(true)
+        const newConversation: Chat = {
+            id: Date.now().toString(),
+            input: userInput,
+            prompt: aiPrompt,
+            output: "",
+            approved: null,
+            rejected: null,
+            timestamp: new Date().toISOString(),
+            agentId: selectedAgent?.id || 0,
+            isLoading: true
+        }
+        setChat(prevChat => [...prevChat, newConversation])
+        setTimeout(() => {
+            scrollToBottom()
+        }, 5)
+
         try {
             const response = await fetch('/api/rewrite/generate', {
                 method: 'POST',
@@ -55,23 +74,23 @@ export default function ChatPage() {
 
             const suggestion = await response.json()
 
-            const newConversation: Chat = {
-                id: Date.now().toString(),
-                input: userInput,
-                prompt: aiPrompt,
-                output: suggestion.suggestion,
-                approved: null,
-                rejected: null,
-                timestamp: new Date().toISOString(),
-                agentId: selectedAgent?.id || 0
-            }
-            setChat(prevChat => [...prevChat, newConversation])
-            setUserInput("")
-            setAiPrompt("")
+            setChat(prevChat => prevChat.map(conv =>
+                conv.id === newConversation.id
+                    ? { ...conv, output: suggestion.suggestion, isLoading: false }
+                    : conv
+            ))
         } catch (error) {
             console.error("Error in handleSubmit:", error)
+            setChat(prevChat => prevChat.map(conv =>
+                conv.id === newConversation.id
+                    ? { ...conv, output: "Error occurred while generating response.", isLoading: false }
+                    : conv
+            ))
         } finally {
             setIsLoading(false)
+            setUserInput("")
+            setAiPrompt("")
+            scrollToBottom()
         }
     }
 
@@ -99,8 +118,11 @@ export default function ChatPage() {
     }
 
     const scrollToBottom = () => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+        if (scrollAreaRef.current) {
+            const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (scrollContainer) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
         }
     }
 
@@ -145,10 +167,6 @@ export default function ChatPage() {
 
         fetchAgents()
     }, [])
-
-    useEffect(() => {
-        scrollToBottom()
-    }, [chat])
 
     return (
         <div className="flex flex-col h-full">
@@ -218,7 +236,7 @@ export default function ChatPage() {
                         <CardTitle>{selectedAgent?.name || "Select an Agent"}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex-grow overflow-hidden">
-                        <ScrollArea className="h-[calc(100vh-16rem)]">
+                        <ScrollArea className="h-[calc(100vh-16rem)]" ref={scrollAreaRef}>
                             <div className="space-y-6 pr-4" ref={chatContainerRef}>
                                 {chat.length > 0 ? (
                                     chat.map((conv, index) => (
@@ -249,44 +267,54 @@ export default function ChatPage() {
                                                 </Avatar>
                                                 <div className="space-y-1 flex-grow">
                                                     <p className="text-sm font-medium">{selectedAgent?.name || "AI"}&apos;s response:</p>
-                                                    <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
-                                                    <div className="flex justify-end space-x-2 mt-2">
-                                                        <Button
-                                                            variant={conv.approved ? "default" : "outline"}
-                                                            size="sm"
-                                                            onClick={() => handleApprove(index)}
-                                                        >
-                                                            <Check className="h-4 w-4 mr-2" />
-                                                            {conv.approved ? "Approved" : "Approve"}
-                                                        </Button>
-                                                        <Button
-                                                            variant={conv.rejected ? "default" : "outline"}
-                                                            size="icon"
-                                                            className="h-8 w-8"
-                                                            onClick={() => handleReject(index)}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                            <span className="sr-only">Reject response</span>
-                                                        </Button>
-                                                        <TooltipProvider>
-                                                            <Tooltip open={copiedIndex === index}>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="icon"
-                                                                        className="h-8 w-8"
-                                                                        onClick={() => handleCopy(conv.output, index)}
-                                                                    >
-                                                                        <Copy className="h-4 w-4" />
-                                                                        <span className="sr-only">Copy response</span>
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Copied</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                    </div>
+                                                    {conv.isLoading ? (
+                                                        <div className="space-y-2">
+                                                            <Skeleton className="h-4 w-full" />
+                                                            <Skeleton className="h-4 w-4/5" />
+                                                            <Skeleton className="h-4 w-3/5" />
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
+                                                    )}
+                                                    {!conv.isLoading && (
+                                                        <div className="flex justify-end space-x-2 mt-2">
+                                                            <Button
+                                                                variant={conv.approved ? "default" : "outline"}
+                                                                size="sm"
+                                                                onClick={() => handleApprove(index)}
+                                                            >
+                                                                <Check className="h-4 w-4 mr-2" />
+                                                                {conv.approved ? "Approved" : "Approve"}
+                                                            </Button>
+                                                            <Button
+                                                                variant={conv.rejected ? "default" : "outline"}
+                                                                size="icon"
+                                                                className="h-8 w-8"
+                                                                onClick={() => handleReject(index)}
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                                <span className="sr-only">Reject response</span>
+                                                            </Button>
+                                                            <TooltipProvider>
+                                                                <Tooltip open={copiedIndex === index}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="icon"
+                                                                            className="h-8 w-8"
+                                                                            onClick={() => handleCopy(conv.output, index)}
+                                                                        >
+                                                                            <Copy className="h-4 w-4" />
+                                                                            <span className="sr-only">Copy response</span>
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>Copied</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
