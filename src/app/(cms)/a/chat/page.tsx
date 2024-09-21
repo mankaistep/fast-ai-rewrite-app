@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sparkles, Check, Copy, UserRound, X, Loader2 } from "lucide-react"
+import { Sparkles, Check, Copy, UserRound, X, Loader2, MessageSquare } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Agent } from "@prisma/client"
+import {useSession} from "next-auth/react";
 
 type Chat = {
     id: string
@@ -25,16 +26,38 @@ type Chat = {
     isLoading?: boolean
 }
 
+const EmptyState = ({ message }: { message: string }) => (
+    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+        <MessageSquare className="h-12 w-12 text-gray-400 mb-4" />
+        <p className="text-xl font-semibold text-gray-700 mb-2">No messages yet</p>
+        <p className="text-sm text-gray-500">{message}</p>
+    </div>
+)
+
 export default function ChatPage() {
+    const {data: session, status} = useSession()
+    const [userAvatar, setUserAvatar] = useState("")
+
     const [agents, setAgents] = useState<Agent[]>([])
     const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
+
     const [userInput, setUserInput] = useState("")
     const [aiPrompt, setAiPrompt] = useState("")
+
     const [chat, setChat] = useState<Chat[]>([])
+
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [chatFetchError, setChatFetchError] = useState<string | null>(null)
     const chatContainerRef = useRef<HTMLDivElement>(null)
     const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+    // Check auth
+    useEffect(() => {
+        if (status === 'authenticated' && session) {
+            setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
+        }
+    }, [session, status])
 
     const handleSubmit = async () => {
         setIsLoading(true)
@@ -117,6 +140,7 @@ export default function ChatPage() {
     const handleChangeSelectedAgent = (agentId: string) => {
         const selectedAgent = agents.find((agent) => agent.id === parseInt(agentId))
         setSelectedAgent(selectedAgent || null)
+        setChatFetchError(null)
     }
 
     const scrollToBottom = () => {
@@ -131,6 +155,7 @@ export default function ChatPage() {
     useEffect(() => {
         const fetchChats = async () => {
             if (!selectedAgent) {
+                setChat([])
                 return
             }
             try {
@@ -142,8 +167,14 @@ export default function ChatPage() {
                 }
                 const data = await response.json()
                 setChat(data)
+                setChatFetchError(null)
+                setTimeout(() => {
+                    scrollToBottom()
+                }, 5)
             } catch (error) {
                 console.error("Error fetching chats:", error)
+                setChatFetchError("Failed to fetch chat history. Please try again.")
+                setChat([])
             }
         }
 
@@ -159,9 +190,6 @@ export default function ChatPage() {
                 }
                 const data = await response.json()
                 setAgents(data)
-                if (data.length > 0) {
-                    setSelectedAgent(data[0])
-                }
             } catch (error) {
                 console.error("Error fetching agents:", error)
             }
@@ -181,7 +209,7 @@ export default function ChatPage() {
                         <div className="space-y-4 flex flex-col flex-grow">
                             <div>
                                 <label htmlFor="agent-select" className="block text-sm font-medium mb-1">
-                                    Select agent
+                                    Agent
                                 </label>
                                 <Select value={selectedAgent?.id.toString()} onValueChange={handleChangeSelectedAgent}>
                                     <SelectTrigger id="agent-select">
@@ -212,7 +240,7 @@ export default function ChatPage() {
                                 </label>
                                 <Input
                                     id="prompt"
-                                    placeholder="Enter prompt for AI"
+                                    placeholder="Enter note here (optional)"
                                     value={aiPrompt}
                                     onChange={(e) => setAiPrompt(e.target.value)}
                                 />
@@ -220,7 +248,7 @@ export default function ChatPage() {
                             <Button
                                 onClick={handleSubmit}
                                 className={`w-full mt-auto ${isLoading ? 'animate-pulse' : ''}`}
-                                disabled={isLoading}
+                                disabled={isLoading || !selectedAgent}
                             >
                                 {isLoading ? (
                                     <>
@@ -239,17 +267,29 @@ export default function ChatPage() {
                 </Card>
                 <Card className="w-full lg:w-2/3 flex flex-col">
                     <CardHeader className="flex-shrink-0">
-                        <CardTitle>{selectedAgent?.name || "Select an Agent"}</CardTitle>
+                        <CardTitle>{selectedAgent ? "Chat with " + selectedAgent?.name : "Select an agent to chat"}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex-grow overflow-hidden">
-                        <ScrollArea className="h-[calc(100vh-16rem)]" ref={scrollAreaRef}>
-                            <div className="space-y-6 pr-4" ref={chatContainerRef}>
-                                {chat.length > 0 ? (
-                                    chat.map((conv, index) => (
+                        <ScrollArea className="h-[calc(100vh-16rem)] flex flex-col" ref={scrollAreaRef}>
+                            {!selectedAgent || chatFetchError || chat.length === 0 ? (
+                                <div className="flex-grow flex items-center justify-center">
+                                    <EmptyState
+                                        message={
+                                            !selectedAgent
+                                                ? "Select an agent to start chatting"
+                                                : chatFetchError
+                                                    ? chatFetchError
+                                                    : "No chat history available. Start a new conversation!"
+                                        }
+                                    />
+                                </div>
+                            ) : (
+                                <div className="space-y-6 pr-4" ref={chatContainerRef}>
+                                    {chat.map((conv, index) => (
                                         <div key={conv.id} className="mb-6">
                                             <div className="flex items-start space-x-4 mb-4 relative">
                                                 <Avatar>
-                                                    <AvatarImage src="https://lh3.googleusercontent.com/a/ACg8ocJCZtaOcOwDWEJ0Gro0VBFu_cZ9WfvDqXO3PAp6Ga8_QSgZvF-H=s96-c" alt="User" />
+                                                    <AvatarImage src={userAvatar} alt="User" />
                                                     <AvatarFallback>U</AvatarFallback>
                                                 </Avatar>
                                                 <div className="space-y-1 flex-grow">
@@ -327,13 +367,9 @@ export default function ChatPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="flex items-center justify-center h-full">
-                                        <p className="text-muted-foreground">No chat history available.</p>
-                                    </div>
-                                )}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </ScrollArea>
                     </CardContent>
                 </Card>
