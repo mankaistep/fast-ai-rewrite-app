@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
                 agentId: parseInt(agentId, 10),
             },
             orderBy: {
-                timestamp: 'desc',
+                timestamp: 'asc',
             }
         });
 

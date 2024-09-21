@@ -37,8 +37,10 @@ export async function POST(req: NextRequest) {
         if (typeof prompt !== 'string') {
             return NextResponse.json({ error: 'Invalid prompt' }, { status: 400 });
         }
-        if (typeof isChat !== 'boolean') {
-            return NextResponse.json({ error: 'Invalid isChat' }, { status: 400 });
+        if (isChat) {
+            if (typeof isChat !== 'boolean') {
+                return NextResponse.json({ error: 'Invalid isChat' }, { status: 400 });
+            }
         }
 
         // Call the sendRewriteRequest function

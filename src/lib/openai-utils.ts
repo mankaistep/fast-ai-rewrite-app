@@ -115,7 +115,8 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
                         input: original,
                         prompt: prompt,
                         output: suggestion,
-                        result: false
+                        approved: false,
+                        rejected: false
                     }
                 })
             }

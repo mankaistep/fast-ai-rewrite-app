@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,47 +10,73 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Check, Copy, UserRound, X } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import type { Agent } from "@prisma/client";
 
-type Conversation = {
+type Chat = {
     input: string
     prompt: string
-    response: string
+    output: string
     approved?: boolean
     rejected?: boolean
 }
 
-const fixedData: Conversation[] = [
+const fixedData: Chat[] = [
     {
         input: "What's the weather like today?",
         prompt: "Provide a detailed weather forecast",
-        response: "Today's weather forecast shows partly cloudy skies with a high of 72°F (22°C) and a low of 58°F (14°C). There's a 20% chance of light rain in the afternoon. Winds will be gentle, coming from the southwest at 5-10 mph. Overall, it's a pleasant day with comfortable temperatures and minimal precipitation expected."
+        output: "Today's weather forecast shows partly cloudy skies with a high of 72°F (22°C) and a low of 58°F (14°C). There's a 20% chance of light rain in the afternoon. Winds will be gentle, coming from the southwest at 5-10 mph. Overall, it's a pleasant day with comfortable temperatures and minimal precipitation expected."
     },
     {
         input: "Can you recommend a good Italian restaurant?",
         prompt: "Suggest a highly-rated Italian restaurant with details",
-        response: "I'd recommend 'La Trattoria Bella', a highly-rated Italian restaurant known for its authentic cuisine and warm atmosphere. Located in the heart of downtown, it offers a diverse menu featuring hand-made pasta, wood-fired pizzas, and a selection of fine Italian wines. Their signature dish is the 'Osso Buco alla Milanese'. The restaurant has a 4.5-star rating on popular review sites, with patrons praising the food quality, attentive service, and charming decor. Reservations are recommended, especially for weekend dinners."
+        output: "I'd recommend 'La Trattoria Bella', a highly-rated Italian restaurant known for its authentic cuisine and warm atmosphere. Located in the heart of downtown, it offers a diverse menu featuring hand-made pasta, wood-fired pizzas, and a selection of fine Italian wines. Their signature dish is the 'Osso Buco alla Milanese'. The restaurant has a 4.5-star rating on popular review sites, with patrons praising the food quality, attentive service, and charming decor. Reservations are recommended, especially for weekend dinners."
     },
     {
         input: "How do I change a flat tire?",
         prompt: "Provide step-by-step instructions for changing a flat tire",
-        response: "Here's a step-by-step guide to changing a flat tire:\n\n1. Ensure you're in a safe location, away from traffic.\n2. Turn on your hazard lights and engage the parking brake.\n3. Locate the spare tire, jack, and lug wrench in your vehicle.\n4. Use the wrench to loosen the lug nuts on the flat tire (don't remove them completely).\n5. Place the jack under the vehicle's frame near the flat tire.\n6. Raise the vehicle until the flat tire is off the ground.\n7. Remove the lug nuts and the flat tire.\n8. Mount the spare tire onto the wheel hub.\n9. Replace the lug nuts and tighten them by hand.\n10. Lower the vehicle and remove the jack.\n11. Use the wrench to fully tighten the lug nuts in a star pattern.\n12. Store the flat tire and all tools back in your vehicle.\n\nRemember, a spare tire is usually a temporary solution. Get your regular tire repaired or replaced as soon as possible."
+        output: "Here's a step-by-step guide to changing a flat tire:\n\n1. Ensure you're in a safe location, away from traffic.\n2. Turn on your hazard lights and engage the parking brake.\n3. Locate the spare tire, jack, and lug wrench in your vehicle.\n4. Use the wrench to loosen the lug nuts on the flat tire (don't remove them completely).\n5. Place the jack under the vehicle's frame near the flat tire.\n6. Raise the vehicle until the flat tire is off the ground.\n7. Remove the lug nuts and the flat tire.\n8. Mount the spare tire onto the wheel hub.\n9. Replace the lug nuts and tighten them by hand.\n10. Lower the vehicle and remove the jack.\n11. Use the wrench to fully tighten the lug nuts in a star pattern.\n12. Store the flat tire and all tools back in your vehicle.\n\nRemember, a spare tire is usually a temporary solution. Get your regular tire repaired or replaced as soon as possible."
     }
 ]
 
 export default function Component() {
-    const [selectedAgent, setSelectedAgent] = useState("Customer Support Agent")
+    const [agents, setAgents] = useState<Agent[]>([])
+    const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
+
     const [userInput, setUserInput] = useState("")
     const [aiPrompt, setAiPrompt] = useState("")
-    const [conversations, setConversations] = useState<Conversation[]>(fixedData)
+
+    const [chat, setChat] = useState<Chat[]>(fixedData)
+
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
-    const handleSubmit = () => {
-        const newConversation: Conversation = {
+    const handleSubmit = async () => {
+        const response = await fetch('/api/rewrite/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                agentId: selectedAgent?.id,
+                original: userInput,
+                prompt: aiPrompt,
+                isChat: true
+            })
+        })
+
+        if (response == null) {
+            return null
+        }
+
+        const suggestion = await response.json()
+
+        console.log(suggestion)
+
+        const newConversation: Chat = {
             input: userInput,
             prompt: aiPrompt,
-            response: "This is a simulated AI response to your input. In a real application, this would be generated by an AI model based on your input and prompt."
+            output: suggestion.suggestion
         }
-        setConversations([...conversations, newConversation])
+        setChat([...chat, newConversation])
         setUserInput("")
         setAiPrompt("")
     }
@@ -62,16 +88,55 @@ export default function Component() {
     }
 
     const handleApprove = (index: number) => {
-        setConversations(conversations.map((conv, i) =>
-            i === index ? { ...conv, approved: !conv.approved, rejected: false } : conv
+        setChat(chat.map((conv, i) =>
+            i === index ? { ...conv, result: conv.approved, rejected: false } : conv
         ))
     }
 
     const handleReject = (index: number) => {
-        setConversations(conversations.map((conv, i) =>
-            i === index ? { ...conv, rejected: !conv.rejected, approved: false } : conv
+        setChat(chat.map((conv, i) =>
+            i === index ? { ...conv, rejected: conv.rejected, result: false } : conv
         ))
     }
+
+    const handleChangeSelectedAgent = (agentId: string) => {
+        const selectedAgent = agents.find((agent) => agent.id == parseInt(agentId));
+        setSelectedAgent(selectedAgent || null);
+    }
+
+    // Get chat when agent is selected
+    useEffect(() => {
+        const fetchChats = async () => {
+            if (!selectedAgent) {
+                return
+            }
+            const response = await fetch(`/api/agents/chat-activities?agentId=${selectedAgent?.id}`, {
+                method: 'GET'
+            })
+            const data = await response.json()
+            setChat(data)
+        }
+
+        fetchChats().then()
+    }, [selectedAgent]);
+
+    // Init agent list
+    useEffect(() => {
+        const fetchAgents = async () => {
+            const response = await fetch('/api/agents', { method: 'GET' })
+            if (!response.ok) {
+                console.error('Failed to fetch agents');
+                return;
+            }
+            const data = await response.json()
+            setAgents(data)
+            if (data.length > 0) {
+                setSelectedAgent(data[0])
+            }
+        }
+
+        fetchAgents()
+    }, [])
 
     return (
         <div className="container mx-auto py-10 px-4">
@@ -86,14 +151,16 @@ export default function Component() {
                             <label htmlFor="agent-select" className="block text-sm font-medium mb-1">
                                 Select agent
                             </label>
-                            <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                            <Select value={selectedAgent?.id.toString()} onValueChange={(newAgentId) => {
+                                handleChangeSelectedAgent(newAgentId)
+                            }}>
                                 <SelectTrigger id="agent-select">
                                     <SelectValue placeholder="Select an agent" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Customer Support Agent">Customer Support Agent</SelectItem>
-                                    <SelectItem value="Technical Support Agent">Technical Support Agent</SelectItem>
-                                    <SelectItem value="Sales Agent">Sales Agent</SelectItem>
+                                    { agents.map((agent) => (
+                                        <SelectItem key={agent.id} value={agent.id.toString()}>{agent.name}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -128,11 +195,11 @@ export default function Component() {
                 </Card>
                 <Card className="w-full md:w-2/3">
                     <CardHeader>
-                        <CardTitle>{selectedAgent}</CardTitle>
+                        <CardTitle>{selectedAgent?.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ScrollArea className="h-[600px] pr-4">
-                            {conversations.map((conv, index) => (
+                            {chat.map((conv, index) => (
                                 <div key={index} className="mb-6">
                                     <div className="flex items-start space-x-4 mb-4">
                                         <Avatar>
@@ -142,8 +209,13 @@ export default function Component() {
                                         <div className="space-y-1 flex-grow">
                                             <p className="text-sm font-medium">Text to rewrite:</p>
                                             <p className="text-sm text-muted-foreground">{conv.input}</p>
-                                            <p className="text-sm font-medium mt-2">Extra note:</p>
-                                            <p className="text-sm text-muted-foreground">{conv.prompt}</p>
+                                            {
+                                                conv.prompt ? <>
+                                                    <p className="text-sm font-medium mt-2">Extra note:</p>
+                                                    <p className="text-sm text-muted-foreground">{conv.prompt}</p>
+                                                </> : <></>
+                                            }
+
                                         </div>
                                     </div>
                                     <div className="flex items-start space-x-4">
@@ -152,11 +224,12 @@ export default function Component() {
                                             <AvatarFallback><UserRound className="text-primary" /></AvatarFallback>
                                         </Avatar>
                                         <div className="space-y-1 flex-grow">
-                                            <p className="text-sm font-medium">{selectedAgent} Response:</p>
-                                            <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.response}</p>
+                                            {/* eslint-disable-next-line react/no-unescaped-entities */}
+                                            <p className="text-sm font-medium">{selectedAgent?.name}'s response:</p>
+                                            <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
                                             <div className="flex justify-end space-x-2 mt-2">
                                                 <Button
-                                                    variant={conv.approved ? "default" : "outline"}
+                                                    variant={conv.rejected ? "default" : "outline"}
                                                     size="sm"
                                                     onClick={() => handleApprove(index)}
                                                 >
@@ -179,7 +252,7 @@ export default function Component() {
                                                                 variant="outline"
                                                                 size="icon"
                                                                 className="h-8 w-8"
-                                                                onClick={() => handleCopy(conv.response, index)}
+                                                                onClick={() => handleCopy(conv.output, index)}
                                                             >
                                                                 <Copy className="h-4 w-4" />
                                                                 <span className="sr-only">Copy response</span>
