@@ -11,8 +11,10 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sparkles, Check, Copy, UserRound, X, Loader2, MessageSquare } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 import type { Agent } from "@prisma/client"
-import {useSession} from "next-auth/react";
+import { useSession } from "next-auth/react"
 
 type Chat = {
     id: string
@@ -24,6 +26,7 @@ type Chat = {
     timestamp: string
     agentId: number
     isLoading?: boolean
+    isActionLoading?: boolean
 }
 
 const EmptyState = ({ message }: { message: string }) => (
@@ -35,8 +38,9 @@ const EmptyState = ({ message }: { message: string }) => (
 )
 
 export default function ChatPage() {
-    const {data: session, status} = useSession()
+    const { data: session, status } = useSession()
     const [userAvatar, setUserAvatar] = useState("")
+    const { toast } = useToast()
 
     const [agents, setAgents] = useState<Agent[]>([])
     const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
@@ -52,7 +56,6 @@ export default function ChatPage() {
     const chatContainerRef = useRef<HTMLDivElement>(null)
     const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-    // Check auth
     useEffect(() => {
         if (status === 'authenticated' && session) {
             setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
@@ -125,16 +128,55 @@ export default function ChatPage() {
         setTimeout(() => setCopiedIndex(null), 2000)
     }
 
-    const handleApprove = (index: number) => {
-        setChat(prevChat => prevChat.map((conv, i) =>
-            i === index ? { ...conv, approved: !conv.approved, rejected: false } : conv
-        ))
+    const simulateApiRequest = async (action: 'approve' | 'reject', chatId: string) => {
+        return new Promise<void>((resolve) => {
+            setTimeout(() => {
+                console.log(`${action} action for chat ${chatId} sent to API`)
+                resolve()
+            }, 1000)
+        })
     }
 
-    const handleReject = (index: number) => {
+    const handleApprove = async (index: number) => {
+        const chatToApprove = chat[index]
+        const isApproved = chatToApprove.approved
         setChat(prevChat => prevChat.map((conv, i) =>
-            i === index ? { ...conv, rejected: !conv.rejected, approved: false } : conv
+            i === index ? { ...conv, isActionLoading: true } : conv
         ))
+
+        await simulateApiRequest(isApproved ? 'reject' : 'approve', chatToApprove.id)
+
+        setChat(prevChat => prevChat.map((conv, i) =>
+            i === index ? { ...conv, approved: !isApproved, rejected: false, isActionLoading: false } : conv
+        ))
+
+        if (!isApproved && selectedAgent) {
+            toast({
+                title: "Activity approved",
+                description: `${selectedAgent.name} will generate more suggestions like this`,
+            })
+        }
+    }
+
+    const handleReject = async (index: number) => {
+        const chatToReject = chat[index]
+        const isRejected = chatToReject.rejected
+        setChat(prevChat => prevChat.map((conv, i) =>
+            i === index ? { ...conv, isActionLoading: true } : conv
+        ))
+
+        await simulateApiRequest(isRejected ? 'approve' : 'reject', chatToReject.id)
+
+        setChat(prevChat => prevChat.map((conv, i) =>
+            i === index ? { ...conv, rejected: !isRejected, approved: false, isActionLoading: false } : conv
+        ))
+
+        if (!isRejected && selectedAgent) {
+            toast({
+                title: "Activity rejected",
+                description: `${selectedAgent.name} will avoid generating suggestions like this`,
+            })
+        }
     }
 
     const handleChangeSelectedAgent = (agentId: string) => {
@@ -199,181 +241,194 @@ export default function ChatPage() {
     }, [])
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex flex-col lg:flex-row gap-6 flex-grow overflow-hidden">
-                <Card className="w-full lg:w-1/3 flex flex-col">
-                    <CardHeader className="flex-shrink-0">
-                        <CardTitle>Input</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col flex-grow overflow-hidden">
-                        <div className="space-y-4 flex flex-col flex-grow">
-                            <div>
-                                <label htmlFor="agent-select" className="block text-sm font-medium mb-1">
-                                    Agent
-                                </label>
-                                <Select value={selectedAgent?.id.toString()} onValueChange={handleChangeSelectedAgent}>
-                                    <SelectTrigger id="agent-select">
-                                        <SelectValue placeholder="Select an agent" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {agents.map((agent) => (
-                                            <SelectItem key={agent.id} value={agent.id.toString()}>{agent.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="flex-grow flex flex-col">
-                                <label htmlFor="user-input" className="block text-sm font-medium mb-1">
-                                    Text to rewrite
-                                </label>
-                                <Textarea
-                                    id="user-input"
-                                    placeholder="Enter your text here"
-                                    value={userInput}
-                                    onChange={(e) => setUserInput(e.target.value)}
-                                    className="flex-grow resize-none"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="prompt" className="block text-sm font-medium mb-1">
-                                    Extra note
-                                </label>
-                                <Input
-                                    id="prompt"
-                                    placeholder="Enter note here (optional)"
-                                    value={aiPrompt}
-                                    onChange={(e) => setAiPrompt(e.target.value)}
-                                />
-                            </div>
-                            <Button
-                                onClick={handleSubmit}
-                                className={`w-full mt-auto ${isLoading ? 'animate-pulse' : ''}`}
-                                disabled={isLoading || !selectedAgent}
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
-                                        <span className="animate-pulse">Thinking...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="mr-2 h-4 w-4" />
-                                        Rewrite
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="w-full lg:w-2/3 flex flex-col">
-                    <CardHeader className="flex-shrink-0">
-                        <CardTitle>{selectedAgent ? "Chat with " + selectedAgent?.name : "Select an agent to chat"}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow overflow-hidden">
-                        <ScrollArea className="h-[calc(100vh-16rem)] flex flex-col" ref={scrollAreaRef}>
-                            {!selectedAgent || chatFetchError || chat.length === 0 ? (
-                                <div className="flex-grow flex items-center justify-center">
-                                    <EmptyState
-                                        message={
-                                            !selectedAgent
-                                                ? "Select an agent to start chatting"
-                                                : chatFetchError
-                                                    ? chatFetchError
-                                                    : "No chat history available. Start a new conversation!"
-                                        }
+        <>
+            <div className="flex flex-col h-full">
+                <div className="flex flex-col lg:flex-row gap-6 flex-grow overflow-hidden">
+                    <Card className="w-full lg:w-1/3 flex flex-col">
+                        <CardHeader className="flex-shrink-0">
+                            <CardTitle>Input</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col flex-grow overflow-hidden">
+                            <div className="space-y-4 flex flex-col flex-grow">
+                                <div>
+                                    <label htmlFor="agent-select" className="block text-sm font-medium mb-1">
+                                        Agent
+                                    </label>
+                                    <Select value={selectedAgent?.id.toString()} onValueChange={handleChangeSelectedAgent}>
+                                        <SelectTrigger id="agent-select">
+                                            <SelectValue placeholder="Select an agent" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {agents.map((agent) => (
+                                                <SelectItem key={agent.id} value={agent.id.toString()}>{agent.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex-grow flex flex-col">
+                                    <label htmlFor="user-input" className="block text-sm font-medium mb-1">
+                                        Text to rewrite
+                                    </label>
+                                    <Textarea
+                                        id="user-input"
+                                        placeholder="Enter your text here"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        className="flex-grow resize-none"
                                     />
                                 </div>
-                            ) : (
-                                <div className="space-y-6 pr-4" ref={chatContainerRef}>
-                                    {chat.map((conv, index) => (
-                                        <div key={conv.id} className="mb-6">
-                                            <div className="flex items-start space-x-4 mb-4 relative">
-                                                <Avatar>
-                                                    <AvatarImage src={userAvatar} alt="User" />
-                                                    <AvatarFallback>U</AvatarFallback>
-                                                </Avatar>
-                                                <div className="space-y-1 flex-grow">
-                                                    <p className="text-sm font-medium">Text to rewrite:</p>
-                                                    <p className="text-sm text-muted-foreground">{conv.input}</p>
-                                                    {conv.prompt && (
-                                                        <>
-                                                            <p className="text-sm font-medium mt-2">Extra note:</p>
-                                                            <p className="text-sm text-muted-foreground">{conv.prompt}</p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground absolute top-0 right-0">
-                                                    {new Date(conv.timestamp).toLocaleString()}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-start space-x-4">
-                                                <Avatar>
-                                                    <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI" />
-                                                    <AvatarFallback><UserRound className="text-primary" /></AvatarFallback>
-                                                </Avatar>
-                                                <div className="space-y-1 flex-grow">
-                                                    <p className="text-sm font-medium">{selectedAgent?.name || "AI"}&apos;s response:</p>
-                                                    {conv.isLoading ? (
-                                                        <div className="space-y-2">
-                                                            <Skeleton className="h-4 w-full" />
-                                                            <Skeleton className="h-4 w-4/5" />
-                                                            <Skeleton className="h-4 w-3/5" />
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
-                                                    )}
-                                                    {!conv.isLoading && (
-                                                        <div className="flex justify-end space-x-2 mt-2">
-                                                            <Button
-                                                                variant={conv.approved ? "default" : "outline"}
-                                                                size="icon"
-                                                                className="h-6 w-6"
-                                                                onClick={() => handleApprove(index)}
-                                                            >
-                                                                <Check className="h-3 w-3" />
-                                                                <span className="sr-only">
-                                                                    {conv.approved ? "Approved" : "Approve"}
-                                                                </span>
-                                                            </Button>
-                                                            <Button
-                                                                variant={conv.rejected ? "default" : "outline"}
-                                                                size="icon"
-                                                                className="h-6 w-6"
-                                                                onClick={() => handleReject(index)}
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                                <span className="sr-only">Reject response</span>
-                                                            </Button>
-                                                            <TooltipProvider>
-                                                                <Tooltip open={copiedIndex === index}>
-                                                                    <TooltipTrigger asChild>
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            size="icon"
-                                                                            className="h-6 w-6"
-                                                                            onClick={() => handleCopy(conv.output, index)}
-                                                                        >
-                                                                            <Copy className="h-3 w-3" />
-                                                                            <span className="sr-only">Copy response</span>
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        <p>Copied</p>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div>
+                                    <label htmlFor="prompt" className="block text-sm font-medium mb-1">
+                                        Extra note
+                                    </label>
+                                    <Input
+                                        id="prompt"
+                                        placeholder="Enter note here (optional)"
+                                        value={aiPrompt}
+                                        onChange={(e) => setAiPrompt(e.target.value)}
+                                    />
                                 </div>
-                            )}
-                        </ScrollArea>
-                    </CardContent>
-                </Card>
+                                <Button
+                                    onClick={handleSubmit}
+                                    className={`w-full mt-auto ${isLoading ? 'animate-pulse' : ''}`}
+                                    disabled={isLoading || !selectedAgent}
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                                            <span className="animate-pulse">Thinking...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="mr-2 h-4 w-4" />
+                                            Rewrite
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="w-full lg:w-2/3 flex flex-col">
+                        <CardHeader className="flex-shrink-0">
+                            <CardTitle>{selectedAgent ? "Chat with " + selectedAgent?.name : "Select an agent to chat"}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-grow overflow-hidden">
+                            <ScrollArea className="h-[calc(100vh-16rem)] flex flex-col" ref={scrollAreaRef}>
+                                {!selectedAgent || chatFetchError || chat.length === 0 ? (
+                                    <div className="flex-grow flex items-center justify-center">
+                                        <EmptyState
+                                            message={
+                                                !selectedAgent
+                                                    ? "Select an agent to start chatting"
+                                                    : chatFetchError
+                                                        ? chatFetchError
+                                                        : "No chat history available. Start a new conversation!"
+                                            }
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6 pr-4" ref={chatContainerRef}>
+                                        {chat.map((conv, index) => (
+                                            <div key={conv.id} className="mb-6">
+                                                <div className="flex items-start space-x-4 mb-4 relative">
+                                                    <Avatar>
+                                                        <AvatarImage src={userAvatar} alt="User" />
+                                                        <AvatarFallback>U</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="space-y-1 flex-grow">
+                                                        <p className="text-sm font-medium">Text to rewrite:</p>
+                                                        <p className="text-sm text-muted-foreground">{conv.input}</p>
+                                                        {conv.prompt && (
+                                                            <>
+                                                                <p className="text-sm font-medium mt-2">Extra note:</p>
+                                                                <p className="text-sm text-muted-foreground">{conv.prompt}</p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground absolute top-0 right-0">
+                                                        {new Date(conv.timestamp).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-start space-x-4">
+                                                    <Avatar>
+                                                        <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI" />
+                                                        <AvatarFallback><UserRound className="text-primary" /></AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="space-y-1 flex-grow">
+                                                        <p className="text-sm font-medium">{selectedAgent?.name || "AI"}&apos;s response:</p>
+                                                        {conv.isLoading ? (
+                                                            <div className="space-y-2">
+                                                                <Skeleton className="h-4 w-full" />
+                                                                <Skeleton className="h-4 w-4/5" />
+                                                                <Skeleton className="h-4 w-3/5" />
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
+                                                        )}
+                                                        {!conv.isLoading && (
+                                                            <div className="flex justify-end space-x-2 mt-2">
+                                                                <Button
+                                                                    variant={conv.approved ? "default" : "outline"}
+                                                                    size="icon"
+                                                                    className="h-6 w-6"
+                                                                    onClick={() => handleApprove(index)}
+                                                                    disabled={conv.isActionLoading}
+                                                                >
+                                                                    {conv.isActionLoading ? (
+                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                    ) : (
+                                                                        <Check className="h-3 w-3" />
+                                                                    )}
+                                                                    <span className="sr-only">
+                                                                        {conv.approved ? "Approved" : "Approve"}
+                                                                    </span>
+                                                                </Button>
+                                                                <Button
+                                                                    variant={conv.rejected ? "default" : "outline"}
+                                                                    size="icon"
+                                                                    className="h-6 w-6"
+                                                                    onClick={() => handleReject(index)}
+                                                                    disabled={conv.isActionLoading}
+                                                                >
+                                                                    {conv.isActionLoading ? (
+                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                    ) : (
+                                                                        <X className="h-3 w-3" />
+                                                                    )}
+                                                                    <span className="sr-only">Reject response</span>
+                                                                </Button>
+                                                                <TooltipProvider>
+                                                                    <Tooltip open={copiedIndex === index}>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="icon"
+                                                                                className="h-6 w-6"
+                                                                                onClick={() => handleCopy(conv.output, index)}
+                                                                            >
+                                                                                <Copy className="h-3 w-3" />
+                                                                                <span className="sr-only">Copy response</span>
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p>Copied</p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
+            <Toaster />
+        </>
     )
 }
