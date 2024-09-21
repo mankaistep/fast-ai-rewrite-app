@@ -1,16 +1,16 @@
 "use client"
 
-import {useEffect, useState} from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Check, Copy, UserRound, X } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import type { Agent } from "@prisma/client";
+import type { Agent } from "@prisma/client"
 
 type Chat = {
     input: string
@@ -38,15 +38,12 @@ const fixedData: Chat[] = [
     }
 ]
 
-export default function Component() {
+export default function ChatPage() {
     const [agents, setAgents] = useState<Agent[]>([])
     const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-
     const [userInput, setUserInput] = useState("")
     const [aiPrompt, setAiPrompt] = useState("")
-
     const [chat, setChat] = useState<Chat[]>(fixedData)
-
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
     const handleSubmit = async () => {
@@ -84,27 +81,26 @@ export default function Component() {
     const handleCopy = (text: string, index: number) => {
         navigator.clipboard.writeText(text)
         setCopiedIndex(index)
-        setTimeout(() => setCopiedIndex(null), 2000) // Reset after 2 seconds
+        setTimeout(() => setCopiedIndex(null), 2000)
     }
 
     const handleApprove = (index: number) => {
         setChat(chat.map((conv, i) =>
-            i === index ? { ...conv, result: conv.approved, rejected: false } : conv
+            i === index ? { ...conv, approved: !conv.approved, rejected: false } : conv
         ))
     }
 
     const handleReject = (index: number) => {
         setChat(chat.map((conv, i) =>
-            i === index ? { ...conv, rejected: conv.rejected, result: false } : conv
+            i === index ? { ...conv, rejected: !conv.rejected, approved: false } : conv
         ))
     }
 
     const handleChangeSelectedAgent = (agentId: string) => {
-        const selectedAgent = agents.find((agent) => agent.id == parseInt(agentId));
-        setSelectedAgent(selectedAgent || null);
+        const selectedAgent = agents.find((agent) => agent.id === parseInt(agentId))
+        setSelectedAgent(selectedAgent || null)
     }
 
-    // Get chat when agent is selected
     useEffect(() => {
         const fetchChats = async () => {
             if (!selectedAgent) {
@@ -117,16 +113,15 @@ export default function Component() {
             setChat(data)
         }
 
-        fetchChats().then()
-    }, [selectedAgent]);
+        fetchChats()
+    }, [selectedAgent])
 
-    // Init agent list
     useEffect(() => {
         const fetchAgents = async () => {
             const response = await fetch('/api/agents', { method: 'GET' })
             if (!response.ok) {
-                console.error('Failed to fetch agents');
-                return;
+                console.error('Failed to fetch agents')
+                return
             }
             const data = await response.json()
             setAgents(data)
@@ -139,8 +134,10 @@ export default function Component() {
     }, [])
 
     return (
-        <div className="container mx-auto py-10 px-4">
-            <h1 className="text-3xl font-bold mb-6">Chat with AI</h1>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h2 className="text-3xl font-bold tracking-tight">Chat with AI</h2>
+            </div>
             <div className="flex flex-col md:flex-row gap-6">
                 <Card className="w-full md:w-1/3">
                     <CardHeader>
@@ -151,14 +148,12 @@ export default function Component() {
                             <label htmlFor="agent-select" className="block text-sm font-medium mb-1">
                                 Select agent
                             </label>
-                            <Select value={selectedAgent?.id.toString()} onValueChange={(newAgentId) => {
-                                handleChangeSelectedAgent(newAgentId)
-                            }}>
+                            <Select value={selectedAgent?.id.toString()} onValueChange={handleChangeSelectedAgent}>
                                 <SelectTrigger id="agent-select">
                                     <SelectValue placeholder="Select an agent" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    { agents.map((agent) => (
+                                    {agents.map((agent) => (
                                         <SelectItem key={agent.id} value={agent.id.toString()}>{agent.name}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -195,7 +190,7 @@ export default function Component() {
                 </Card>
                 <Card className="w-full md:w-2/3">
                     <CardHeader>
-                        <CardTitle>{selectedAgent?.name}</CardTitle>
+                        <CardTitle>{selectedAgent?.name || "Select an Agent"}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ScrollArea className="h-[600px] pr-4">
@@ -209,13 +204,12 @@ export default function Component() {
                                         <div className="space-y-1 flex-grow">
                                             <p className="text-sm font-medium">Text to rewrite:</p>
                                             <p className="text-sm text-muted-foreground">{conv.input}</p>
-                                            {
-                                                conv.prompt ? <>
+                                            {conv.prompt && (
+                                                <>
                                                     <p className="text-sm font-medium mt-2">Extra note:</p>
                                                     <p className="text-sm text-muted-foreground">{conv.prompt}</p>
-                                                </> : <></>
-                                            }
-
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex items-start space-x-4">
@@ -224,12 +218,11 @@ export default function Component() {
                                             <AvatarFallback><UserRound className="text-primary" /></AvatarFallback>
                                         </Avatar>
                                         <div className="space-y-1 flex-grow">
-                                            {/* eslint-disable-next-line react/no-unescaped-entities */}
-                                            <p className="text-sm font-medium">{selectedAgent?.name}'s response:</p>
+                                            <p className="text-sm font-medium">{selectedAgent?.name || "AI"}&apos;s response:</p>
                                             <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
                                             <div className="flex justify-end space-x-2 mt-2">
                                                 <Button
-                                                    variant={conv.rejected ? "default" : "outline"}
+                                                    variant={conv.approved ? "default" : "outline"}
                                                     size="sm"
                                                     onClick={() => handleApprove(index)}
                                                 >
