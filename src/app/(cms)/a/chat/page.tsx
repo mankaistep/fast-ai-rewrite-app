@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Send, Check, Copy, UserRound, X, Loader2 } from "lucide-react"
+import { Sparkles, Check, Copy, UserRound, X, Loader2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Agent } from "@prisma/client"
@@ -90,7 +90,9 @@ export default function ChatPage() {
             setIsLoading(false)
             setUserInput("")
             setAiPrompt("")
-            scrollToBottom()
+            setTimeout(() => {
+                scrollToBottom()
+            }, 5)
         }
     }
 
@@ -215,16 +217,20 @@ export default function ChatPage() {
                                     onChange={(e) => setAiPrompt(e.target.value)}
                                 />
                             </div>
-                            <Button onClick={handleSubmit} className="w-full mt-auto" disabled={isLoading}>
+                            <Button
+                                onClick={handleSubmit}
+                                className={`w-full mt-auto ${isLoading ? 'animate-pulse' : ''}`}
+                                disabled={isLoading}
+                            >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Thinking...
+                                        <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                                        <span className="animate-pulse">Thinking...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Send className="mr-2 h-4 w-4" />
-                                        Submit
+                                        <Sparkles className="mr-2 h-4 w-4" />
+                                        Rewrite
                                     </>
                                 )}
                             </Button>
@@ -280,19 +286,22 @@ export default function ChatPage() {
                                                         <div className="flex justify-end space-x-2 mt-2">
                                                             <Button
                                                                 variant={conv.approved ? "default" : "outline"}
-                                                                size="sm"
+                                                                size="icon"
+                                                                className="h-6 w-6"
                                                                 onClick={() => handleApprove(index)}
                                                             >
-                                                                <Check className="h-4 w-4 mr-2" />
-                                                                {conv.approved ? "Approved" : "Approve"}
+                                                                <Check className="h-3 w-3" />
+                                                                <span className="sr-only">
+                                                                    {conv.approved ? "Approved" : "Approve"}
+                                                                </span>
                                                             </Button>
                                                             <Button
                                                                 variant={conv.rejected ? "default" : "outline"}
                                                                 size="icon"
-                                                                className="h-8 w-8"
+                                                                className="h-6 w-6"
                                                                 onClick={() => handleReject(index)}
                                                             >
-                                                                <X className="h-4 w-4" />
+                                                                <X className="h-3 w-3" />
                                                                 <span className="sr-only">Reject response</span>
                                                             </Button>
                                                             <TooltipProvider>
@@ -301,10 +310,10 @@ export default function ChatPage() {
                                                                         <Button
                                                                             variant="outline"
                                                                             size="icon"
-                                                                            className="h-8 w-8"
+                                                                            className="h-6 w-6"
                                                                             onClick={() => handleCopy(conv.output, index)}
                                                                         >
-                                                                            <Copy className="h-4 w-4" />
+                                                                            <Copy className="h-3 w-3" />
                                                                             <span className="sr-only">Copy response</span>
                                                                         </Button>
                                                                     </TooltipTrigger>
