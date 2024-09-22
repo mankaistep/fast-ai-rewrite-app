@@ -164,6 +164,17 @@ export async function markActivityAsApproved(activityId: string) {
     });
 }
 
+export async function markActivityAsRejected(activityId: string) {
+    return prisma.activity.update({
+        where: {
+            id: activityId
+        },
+        data: {
+            result: false
+        }
+    });
+}
+
 export async function markChatActivity(chatActivityId: string, action: 'approve' | 'reject') {
     let isToMark = false
 
