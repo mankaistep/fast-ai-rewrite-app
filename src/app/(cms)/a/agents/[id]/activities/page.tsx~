@@ -224,6 +224,11 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                         <p className="text-sm text-gray-500 mb-4">
                             This agent hasn't performed any activities. Start using the agent to see its activities here.
                         </p>
+                        <Button asChild>
+                            <Link href={`/a/agents/${params.id}`}>
+                                Use Agent
+                            </Link>
+                        </Button>
                     </div>
                 ) : (
                     <Table>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Users, CheckCircle, BarChart } from "lucide-react"
 import { useSession } from "next-auth/react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Metric = {
     current: number;
@@ -46,18 +47,15 @@ export default function DashboardPage() {
     }, []);
 
     function calculatePercentageChange(current: number, previous: number) {
+        if (current === 0) return "--";
         return ((current - previous) / previous * 100).toFixed(1);
     }
 
     function calculateSuccessRate(successfulRewrites: number, totalRequests: number) {
         if (totalRequests === 0) {
-            return 0;
+            return "--";
         }
         return ((successfulRewrites / totalRequests) * 100).toFixed(1);
-    }
-
-    if (isLoading) {
-        return <div>Loading...</div>;
     }
 
     if (error) {
@@ -65,7 +63,7 @@ export default function DashboardPage() {
     }
 
     const percentageChange = calculatePercentageChange(metrics?.totalRequests.current || 0, metrics?.totalRequests.previous || 1);
-    const changePrefix = parseFloat(percentageChange) > 0 ? '+' : '';
+    const changePrefix = percentageChange !== "--" && parseFloat(percentageChange) > 0 ? '+' : '';
 
     return (
         <div className="space-y-4">
@@ -81,7 +79,11 @@ export default function DashboardPage() {
                         <Users className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{metrics?.activeAgents.current}</div>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-20" />
+                        ) : (
+                            <div className="text-2xl font-bold">{metrics?.activeAgents.current}</div>
+                        )}
                     </CardContent>
                     <CardFooter>
                         <Button variant="ghost" className="w-full justify-start" asChild>
@@ -100,11 +102,15 @@ export default function DashboardPage() {
                         <CheckCircle className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{metrics?.successfulRewrites.current}</div>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-20" />
+                        ) : (
+                            <div className="text-2xl font-bold">{metrics?.successfulRewrites.current}</div>
+                        )}
                     </CardContent>
                     <CardFooter>
                         <p className="text-xs text-muted-foreground">
-                            Success rate: {calculateSuccessRate(metrics?.successfulRewrites.current || 0, metrics?.totalRequests.current || 1)}%
+                            Success rate: {isLoading ? "--" : calculateSuccessRate(metrics?.successfulRewrites.current || 0, metrics?.totalRequests.current || 0)}%
                         </p>
                     </CardFooter>
                 </Card>
@@ -116,11 +122,15 @@ export default function DashboardPage() {
                         <BarChart className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{metrics?.totalRequests.current}</div>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-20" />
+                        ) : (
+                            <div className="text-2xl font-bold">{metrics?.totalRequests.current}</div>
+                        )}
                     </CardContent>
                     <CardFooter>
                         <p className="text-xs text-muted-foreground">
-                            {changePrefix}{percentageChange}% from last {metrics?.totalRequests.unit}
+                            {isLoading ? "--%" : `${changePrefix}${percentageChange}%`} from last {metrics?.totalRequests.unit}
                         </p>
                     </CardFooter>
                 </Card>

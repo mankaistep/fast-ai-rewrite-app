@@ -6,7 +6,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_ORGANIZATION_ID = process.env.OPENAI_ORGANIZATION_ID
 const OPENAI_PROJECT_ID = process.env.OPENAI_PROJECT_ID
 
-export async function sendRewriteRequest(agent: any, original: string, prompt: string) : Promise<{
+export async function sendRewriteRequest(agent: any, original: string, prompt: string, isChat: boolean) : Promise<{
     activityId: string,
     agentId: number,
     original: string,
@@ -105,17 +105,33 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
 
         console.log(`[FastAI Rewrite] ${receivedAt - sentAt}ms, ${usageToken} tokens, generated <<${suggestion}>>`)
 
+        // Save to activity if it's rewrite, chatActivity if it's chat
         setTimeout(async () => {
-            await prisma.activity.create({
-                data: {
-                    id: newActivityId,
-                    agentId: agent.id,
-                    input: original,
-                    prompt: prompt,
-                    output: suggestion,
-                    result: false
-                }
-            })
+            if (isChat) {
+                await prisma.chatActivity.create({
+                    data: {
+                        id: newActivityId,
+                        agentId: agent.id,
+                        input: original,
+                        prompt: prompt,
+                        output: suggestion,
+                        approved: false,
+                        rejected: false
+                    }
+                })
+            }
+            else {
+                await prisma.activity.create({
+                    data: {
+                        id: newActivityId,
+                        agentId: agent.id,
+                        input: original,
+                        prompt: prompt,
+                        output: suggestion,
+                        result: false
+                    }
+                })
+            }
         }, 10)
 
         return {
@@ -146,4 +162,87 @@ export async function markActivityAsApproved(activityId: string) {
             result: true
         }
     });
+}
+
+export async function markChatActivity(chatActivityId: string, action: 'approve' | 'reject') {
+    let isToMark = false
+
+    // Update chatActivity
+    const currentChatActivity = await prisma.chatActivity.findFirst({
+        where: {
+            id: chatActivityId
+        }
+    })
+
+    if (!currentChatActivity) {
+        throw new Error("ChatActivity not found")
+    }
+
+    const isCurrentlyMarked = action === 'approve' ? currentChatActivity.approved : currentChatActivity.rejected
+
+    // If not marked => then mark, if marked => unmark
+    if (!isCurrentlyMarked) {
+        isToMark = true
+        await prisma.chatActivity.update({
+            where: {
+                id: chatActivityId
+            },
+            data: {
+                approved: action === 'approve',
+                rejected: action === 'reject'
+            }
+        });
+    } else {
+        isToMark = false
+        await prisma.chatActivity.update({
+            where: {
+                id: chatActivityId
+            },
+            data: {
+                approved: false,
+                rejected: false
+            }
+        });
+    }
+
+    const activity = await prisma.activity.findFirst({
+        where: {
+            chatActivityId: chatActivityId
+        }
+    })
+
+    // Exist => update, not exist => create
+    if (activity) {
+        // To mark => update
+        if (isToMark) {
+            await prisma.activity.update({
+                where: {
+                    id: activity.id
+                },
+                data: {
+                    result: action === 'approve'
+                }
+            })
+        }
+        // To unmark => delete
+        else {
+            await prisma.activity.delete({
+                where: {
+                    id: activity.id
+                }
+            })
+        }
+    } else if (isToMark) {
+        await prisma.activity.create({
+            data: {
+                id: randomUUID().toString(),
+                agentId: currentChatActivity.agentId,
+                input: currentChatActivity.input,
+                prompt: currentChatActivity.prompt,
+                output: currentChatActivity.output,
+                result: action === 'approve',
+                chatActivityId: chatActivityId
+            }
+        })
+    }
 }

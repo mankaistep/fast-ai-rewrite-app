@@ -8,18 +8,18 @@ generator client {
 }
 
 model User {
-  id            Int    @id @default(autoincrement())
-  name          String?
-  email         String?   @unique
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String?
+  email     String?  @unique
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Fields for OAuth providers
-  googleId      String?   @unique
+  googleId String? @unique
 
   // Relations to agents
-  agents        Agent[]
+  agents Agent[]
 }
 
 model Agent {
@@ -35,18 +35,38 @@ model Agent {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  activities  Activity[]
+  activities     Activity[]
+  chatActivities ChatActivity[]
 }
 
 model Activity {
-  id          String      @id @default(uuid())
-  prompt      String?
-  input       String
-  output      String
-  result      Boolean
-  timestamp   DateTime @default(now())
+  id        String   @id @default(uuid())
+  prompt    String?
+  input     String
+  output    String
+  result    Boolean
+  timestamp DateTime @default(now())
 
   // Relations
-  agentId     Int
-  agent       Agent    @relation(fields: [agentId], references: [id])
+  agentId Int
+  agent   Agent @relation(fields: [agentId], references: [id])
+
+  chatActivityId String?       @unique
+  chatActivity   ChatActivity? @relation(fields: [chatActivityId], references: [id])
+}
+
+model ChatActivity {
+  id        String   @id @default(uuid())
+  prompt    String?
+  input     String
+  output    String
+  approved  Boolean?
+  rejected  Boolean?
+  timestamp DateTime @default(now())
+
+  // Relations
+  agentId Int
+  agent   Agent @relation(fields: [agentId], references: [id])
+
+  activities Activity[]
 }
