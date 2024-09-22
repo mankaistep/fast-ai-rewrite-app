@@ -63,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </SheetTrigger>
                             <SheetContent side="left" className="p-0">
                                 <SheetHeader>
-                                    <SheetTitle>Navigation</SheetTitle>
+                                    <SheetTitle></SheetTitle>
                                 </SheetHeader>
                                 <SidebarContent pathname={pathname} onLogout={handleLogout} onNavigation={handleNavigation} />
                             </SheetContent>
