@@ -51,7 +51,7 @@ model Activity {
   agentId Int
   agent   Agent @relation(fields: [agentId], references: [id])
 
-  chatActivityId String?
+  chatActivityId String?       @unique
   chatActivity   ChatActivity? @relation(fields: [chatActivityId], references: [id])
 }
 

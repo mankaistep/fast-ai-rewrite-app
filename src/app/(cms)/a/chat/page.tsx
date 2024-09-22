@@ -56,12 +56,6 @@ export default function ChatPage() {
     const chatContainerRef = useRef<HTMLDivElement>(null)
     const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        if (status === 'authenticated' && session) {
-            setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
-        }
-    }, [session, status])
-
     const handleSubmit = async () => {
         setIsLoading(true)
         const newConversation: Chat = {
@@ -69,8 +63,8 @@ export default function ChatPage() {
             input: userInput,
             prompt: aiPrompt,
             output: "",
-            approved: null,
-            rejected: null,
+            approved: false,
+            rejected: false,
             timestamp: new Date().toISOString(),
             agentId: selectedAgent?.id || 0,
             isLoading: true
@@ -100,11 +94,10 @@ export default function ChatPage() {
 
             const suggestion = await response.json()
 
-            setChat(prevChat => prevChat.map(conv =>
-                conv.id === newConversation.id
-                    ? { ...conv, output: suggestion.suggestion, isLoading: false }
-                    : conv
-            ))
+            setChat(prevChat => [
+                ...prevChat.filter(conv => conv.id !== newConversation.id),
+                { ...newConversation, id: suggestion.activityId, output: suggestion.suggestion, isLoading: false }
+            ])
         } catch (error) {
             console.error("Error in handleSubmit:", error)
             setChat(prevChat => prevChat.map(conv =>
@@ -128,53 +121,32 @@ export default function ChatPage() {
         setTimeout(() => setCopiedIndex(null), 2000)
     }
 
-    const simulateApiRequest = async (action: 'approve' | 'reject', chatId: string) => {
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                console.log(`${action} action for chat ${chatId} sent to API`)
-                resolve()
-            }, 1000)
-        })
-    }
+    const handleAction = async (index: number, action: 'approve' | 'reject') => {
+        const chatToUpdate = chat[index]
+        const isCurrentlyMarked = action === 'approve' ? chatToUpdate.approved : chatToUpdate.rejected
 
-    const handleApprove = async (index: number) => {
-        const chatToApprove = chat[index]
-        const isApproved = chatToApprove.approved
         setChat(prevChat => prevChat.map((conv, i) =>
             i === index ? { ...conv, isActionLoading: true } : conv
         ))
 
-        await simulateApiRequest(isApproved ? 'reject' : 'approve', chatToApprove.id)
+        await sendMarkRequest(action, chatToUpdate.id)
 
         setChat(prevChat => prevChat.map((conv, i) =>
-            i === index ? { ...conv, approved: !isApproved, rejected: false, isActionLoading: false } : conv
+            i === index ? {
+                ...conv,
+                approved: action === 'approve' ? !isCurrentlyMarked : false,
+                rejected: action === 'reject' ? !isCurrentlyMarked : false,
+                isActionLoading: false
+            } : conv
         ))
 
-        if (!isApproved && selectedAgent) {
+        if (!isCurrentlyMarked && selectedAgent) {
             toast({
-                title: "Activity approved",
-                description: `${selectedAgent.name} will generate more suggestions like this`,
-            })
-        }
-    }
-
-    const handleReject = async (index: number) => {
-        const chatToReject = chat[index]
-        const isRejected = chatToReject.rejected
-        setChat(prevChat => prevChat.map((conv, i) =>
-            i === index ? { ...conv, isActionLoading: true } : conv
-        ))
-
-        await simulateApiRequest(isRejected ? 'approve' : 'reject', chatToReject.id)
-
-        setChat(prevChat => prevChat.map((conv, i) =>
-            i === index ? { ...conv, rejected: !isRejected, approved: false, isActionLoading: false } : conv
-        ))
-
-        if (!isRejected && selectedAgent) {
-            toast({
-                title: "Activity rejected",
-                description: `${selectedAgent.name} will avoid generating suggestions like this`,
+                title: `Activity ${action}ed`,
+                description: action === 'approve'
+                    ? `${selectedAgent.name} will generate more suggestions like this`
+                    : `${selectedAgent.name} will avoid generating suggestions like this`,
+                duration: 2000
             })
         }
     }
@@ -194,6 +166,31 @@ export default function ChatPage() {
         }
     }
 
+    const sendMarkRequest = async (action: 'approve' | 'reject', chatId: string) => {
+        try {
+            await fetch('/api/rewrite/mark-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chatActivityId: chatId,
+                    action: action
+                })
+            })
+        } catch (error) {
+            console.error("Error in sendMarkRequest:", error)
+        }
+    }
+
+    // Get user avatar image
+    useEffect(() => {
+        if (status === 'authenticated' && session) {
+            setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
+        }
+    }, [session, status])
+
+    // Get chat
     useEffect(() => {
         const fetchChats = async () => {
             if (!selectedAgent) {
@@ -223,6 +220,7 @@ export default function ChatPage() {
         fetchChats()
     }, [selectedAgent])
 
+    // Get agents
     useEffect(() => {
         const fetchAgents = async () => {
             try {
@@ -371,7 +369,7 @@ export default function ChatPage() {
                                                                     variant={conv.approved ? "default" : "outline"}
                                                                     size="icon"
                                                                     className="h-6 w-6"
-                                                                    onClick={() => handleApprove(index)}
+                                                                    onClick={() => handleAction(index, 'approve')}
                                                                     disabled={conv.isActionLoading}
                                                                 >
                                                                     {conv.isActionLoading ? (
@@ -387,7 +385,7 @@ export default function ChatPage() {
                                                                     variant={conv.rejected ? "default" : "outline"}
                                                                     size="icon"
                                                                     className="h-6 w-6"
-                                                                    onClick={() => handleReject(index)}
+                                                                    onClick={() => handleAction(index, 'reject')}
                                                                     disabled={conv.isActionLoading}
                                                                 >
                                                                     {conv.isActionLoading ? (
