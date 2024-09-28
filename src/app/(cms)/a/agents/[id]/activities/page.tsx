@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import {useCallback, useEffect, useState} from "react"
 import Link from "next/link"
 import { Activity, ArrowLeft, Check, ChevronLeft, ChevronRight, Inbox, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -94,7 +94,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
     const { toast } = useToast()
     const [error, setError] = useState<string | null>(null)
 
-    const fetchActivities = async (page: number) => {
+    const fetchActivities = useCallback(async (page: number) => {
         try {
             setIsLoading(true)
             const response = await fetch(`/api/agents/activities?agentId=${params.id}&page=${page}&limit=15`)
@@ -105,12 +105,9 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
             setActivities(data.activities)
             setPagination(data.pagination)
         } catch (error) {
-            setError('An error occurred while fetching activities')
-            console.error('Error fetching activities:', error)
-        } finally {
-            setIsLoading(false)
+            // ...
         }
-    }
+    }, [params.id, setIsLoading, setActivities, setPagination]);
 
     useEffect(() => {
         const fetchAgent = async () => {
@@ -131,7 +128,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
         }
 
         fetchAgent().then(() => fetchActivities(1))
-    }, [params.id])
+    }, [fetchActivities, params.id])
 
     const handleAction = async (activityId: string, action: 'approve' | 'reject') => {
         try {

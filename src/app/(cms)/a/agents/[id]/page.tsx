@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import {useState, useEffect, useCallback} from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,13 +49,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
         status: "active",
     })
 
-    useEffect(() => {
-        if (!isCreateMode) {
-            fetchAgent()
-        }
-    }, [isCreateMode, params.id])
-
-    const fetchAgent = async () => {
+    const fetchAgent = useCallback(async () => {
         setIsLoading(true)
         try {
             const response = await fetch(`/api/agents?id=${params.id}`)
@@ -66,11 +60,16 @@ export default function AgentPage({ params }: { params: { id: string } }) {
             setAgent(data)
         } catch (error) {
             console.error('Error fetching agent:', error)
-            setError('Failed to load agent data. Please try again.')
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [params.id])
+
+    useEffect(() => {
+        if (!isCreateMode) {
+            fetchAgent()
+        }
+    }, [fetchAgent, isCreateMode])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
