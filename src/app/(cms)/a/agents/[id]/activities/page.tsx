@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Activity, ArrowLeft, Check, ChevronLeft, ChevronRight, Inbox } from "lucide-react"
+import { Activity, ArrowLeft, Check, ChevronLeft, ChevronRight, Inbox, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Table,
@@ -90,7 +90,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
     const [activities, setActivities] = useState<ActivityType[]>([])
 
     const [isLoading, setIsLoading] = useState(false)
-    const [isApproving, setIsApproving] = useState<string | null>(null)
+    const [isActionLoading, setIsActionLoading] = useState<string | null>(null)
     const { toast } = useToast()
     const [error, setError] = useState<string | null>(null)
 
@@ -133,10 +133,11 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
         fetchAgent().then(() => fetchActivities(1))
     }, [params.id])
 
-    const handleApprove = async (activityId: string) => {
+    const handleAction = async (activityId: string, action: 'approve' | 'reject') => {
         try {
-            setIsApproving(activityId)
-            const response = await fetch('/api/rewrite/mark-as-approved', {
+            const endpoint = action === 'approve' ? 'mark-as-approved' : 'mark-as-rejected'
+            setIsActionLoading(activityId)
+            const response = await fetch(`/api/rewrite/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,24 +145,28 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                 body: JSON.stringify({ activityId }),
             })
             if (!response.ok) {
-                throw new Error('Failed to approve activity')
+                throw new Error(`Failed to ${action} activity`)
             }
             setActivities(activities.map(activity =>
-                activity.id === activityId ? { ...activity, result: true } : activity
+                activity.id === activityId ? { ...activity, result: action === 'approve' } : activity
             ))
             toast({
-                title: "Activity approved",
-                description: `${agent.name} will generate more suggestions like this`,
+                title: `Activity ${action}ed`,
+                description: action === 'approve'
+                    ? `${agent.name} will generate more suggestions like this`
+                    : `${agent.name} will avoid generating suggestions like this`,
+                duration: 2000
             })
         } catch (error) {
-            console.error('Error approving activity:', error)
+            console.error(`Error ${action}ing activity:`, error)
             toast({
                 title: "Error",
-                description: "Failed to approve the activity. Please try again.",
+                description: `Failed to ${action} the activity. Please try again.`,
                 variant: "destructive",
+                duration: 4000
             })
         } finally {
-            setIsApproving(null)
+            setIsActionLoading(null)
         }
     }
 
@@ -222,7 +227,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                         <Inbox className="h-12 w-12 text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No activities yet</h3>
                         <p className="text-sm text-gray-500 mb-4">
-                            This agent hasn't performed any activities. Start using the agent to see its activities here.
+                            This agent hasn&apos;t performed any activities. Start using the agent to see its activities here.
                         </p>
                     </div>
                 ) : (
@@ -253,29 +258,44 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
                                     <TableCell>
                                         {activity.result ? (
                                             <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                                                Accepted
+                                                Approved
                                             </Badge>
                                         ) : (
-                                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200">
+                                            <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
                                                 Rejected
                                             </Badge>
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        {!activity.result && (
+                                        {activity.result ? (
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleApprove(activity.id)}
-                                                disabled={isApproving === activity.id}
+                                                onClick={() => handleAction(activity.id, 'reject')}
+                                                disabled={isActionLoading === activity.id}
                                                 className="flex items-center space-x-1"
                                             >
-                                                {isApproving === activity.id ? (
+                                                {isActionLoading === activity.id ? (
+                                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                                ) : (
+                                                    <X className="h-4 w-4" />
+                                                )}
+                                                <span>{isActionLoading === activity.id ? '...' : 'Reject'}</span>
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleAction(activity.id, 'approve')}
+                                                disabled={isActionLoading === activity.id}
+                                                className="flex items-center space-x-1"
+                                            >
+                                                {isActionLoading === activity.id ? (
                                                     <Skeleton className="h-4 w-4 rounded-full" />
                                                 ) : (
                                                     <Check className="h-4 w-4" />
                                                 )}
-                                                <span>{isApproving === activity.id ? '...' : 'Accept'}</span>
+                                                <span>{isActionLoading === activity.id ? '...' : 'Approve'}</span>
                                             </Button>
                                         )}
                                     </TableCell>

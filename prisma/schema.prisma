@@ -35,8 +35,8 @@ model Agent {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  activities     Activity[]
-  chatActivities ChatActivity[]
+  activities     Activity[]     @relation("AgentActivities")
+  chatActivities ChatActivity[] @relation("AgentChatActivities")
 }
 
 model Activity {
@@ -49,10 +49,10 @@ model Activity {
 
   // Relations
   agentId Int
-  agent   Agent @relation(fields: [agentId], references: [id])
+  agent   Agent @relation("AgentActivities", fields: [agentId], references: [id], onDelete: Cascade)
 
   chatActivityId String?       @unique
-  chatActivity   ChatActivity? @relation(fields: [chatActivityId], references: [id])
+  chatActivity   ChatActivity? @relation(fields: [chatActivityId], references: [id], onDelete: SetNull)
 }
 
 model ChatActivity {
@@ -66,7 +66,7 @@ model ChatActivity {
 
   // Relations
   agentId Int
-  agent   Agent @relation(fields: [agentId], references: [id])
+  agent   Agent @relation("AgentChatActivities", fields: [agentId], references: [id], onDelete: Cascade)
 
   activities Activity[]
 }

@@ -77,6 +77,7 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
                         the prompt will include the message to rewrite and any notes for the rewrite.
                         if note when rewrite empty, please ignore
                         if previous generated response is empty, please ignore
+                        return the rewritten message only
                     `
                 },
                 ...messages,
@@ -160,6 +161,17 @@ export async function markActivityAsApproved(activityId: string) {
         },
         data: {
             result: true
+        }
+    });
+}
+
+export async function markActivityAsRejected(activityId: string) {
+    return prisma.activity.update({
+        where: {
+            id: activityId
+        },
+        data: {
+            result: false
         }
     });
 }

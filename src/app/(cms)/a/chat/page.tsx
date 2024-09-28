@@ -37,6 +37,18 @@ const EmptyState = ({ message }: { message: string }) => (
     </div>
 )
 
+const ParagraphRenderer = ({ text }: { text: string }) => {
+    return (
+        <>
+            {text.split('\n').map((line, index) => (
+                <p key={index} className="mb-1 last:mb-0">
+                    {line || <br />}
+                </p>
+            ))}
+        </>
+    )
+}
+
 export default function ChatPage() {
     const { data: session, status } = useSession()
     const [userAvatar, setUserAvatar] = useState("")
@@ -335,7 +347,9 @@ export default function ChatPage() {
                                                     </Avatar>
                                                     <div className="space-y-1 flex-grow">
                                                         <p className="text-sm font-medium">Text to rewrite:</p>
-                                                        <p className="text-sm text-muted-foreground">{conv.input}</p>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            <ParagraphRenderer text={conv.input} />
+                                                        </div>
                                                         {conv.prompt && (
                                                             <>
                                                                 <p className="text-sm font-medium mt-2">Extra note:</p>
@@ -361,7 +375,9 @@ export default function ChatPage() {
                                                                 <Skeleton className="h-4 w-3/5" />
                                                             </div>
                                                         ) : (
-                                                            <p className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">{conv.output}</p>
+                                                            <div className="text-sm bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
+                                                                <ParagraphRenderer text={conv.output} />
+                                                            </div>
                                                         )}
                                                         {!conv.isLoading && (
                                                             <div className="flex justify-end space-x-2 mt-2">
