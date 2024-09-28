@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/(api)/api/auth/[...nextauth]/route";
 import {getToken} from "next-auth/jwt";
 
 // GET all agents or a single agent

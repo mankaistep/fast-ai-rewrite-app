@@ -44,6 +44,7 @@ export default function LoginPage() {
                     />
                     <h1 className="mt-6 text-3xl font-bold text-gray-900">Fast AI Rewrite ✦</h1>
                     <p className="mt-2 text-sm text-gray-600">
+                        {/* eslint-disable-next-line react/no-unescaped-entities */}
                         Where AI writes faster than you can say "writer's block"
                     </p>
                 </div>
