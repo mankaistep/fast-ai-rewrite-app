@@ -40,7 +40,3 @@ export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
 chmod +x temp_built/start.sh
-
-# Debug: List contents of temp_built
-echo "Contents of temp_built:"
-ls -R temp_built
