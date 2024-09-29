@@ -59,6 +59,11 @@ jobs:
     - name: Allow .next folder to be tracked
       run: |
         cd fast-ai-rewrite-app-built
+        echo "Checking if .gitignore exists"
+        if [ ! -f ".gitignore" ]; then
+          echo ".gitignore not found. Creating a new one."
+          echo ".env" > .gitignore
+        fi
         echo "Allowing .next folder to be tracked"
         sed -i '/^\/\.next/d' .gitignore
         git check-ignore -v .next
