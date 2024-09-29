@@ -37,6 +37,11 @@ echo ".env" >> temp_built/.gitignore
 # Remove .next from .gitignore
 sed -i '/^\/\.next/d' temp_built/.gitignore
 
+# Install sharp in the temp_built directory
+cd temp_built
+npm install sharp
+cd ..
+
 # Create a start script
 cat << EOF > temp_built/start.sh
 #!/bin/bash
