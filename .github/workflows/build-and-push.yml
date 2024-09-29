@@ -33,13 +33,13 @@ jobs:
 
     - name: Clone or initialize Repo Built
       run: |
-        if git clone https://x-access-token:${GITHUB_TOKEN}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
+        if git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
           cd fast-ai-rewrite-app-built
         else
           mkdir fast-ai-rewrite-app-built
           cd fast-ai-rewrite-app-built
           git init
-          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/mankaistep/fast-ai-rewrite-app-built.git
+          git remote add origin https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
           echo "# Fast AI Rewrite App Built" > README.md
           git add README.md
           git commit -m "Initial commit"
@@ -56,24 +56,19 @@ jobs:
         find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
         cp -R ../temp_built/* .
 
-    - name: Verify built files
+    - name: Allow .next folder to be tracked
       run: |
         cd fast-ai-rewrite-app-built
-        echo "Contents of built repository:"
-        ls -R
-        echo "Contents of .gitignore:"
+        echo "Allowing .next folder to be tracked"
+        sed -i '/^\/\.next/d' .gitignore
+        git check-ignore -v .next
+        echo "Contents of .gitignore after change:"
         cat .gitignore
-        echo "Checking for .next folder:"
-        if [ -d ".next" ]; then
-          echo ".next folder exists"
-          ls -la .next
-        else
-          echo ".next folder is missing"
-        fi
 
     - name: Commit and push to Repo Built
       run: |
         cd fast-ai-rewrite-app-built
+        git add -f .next
         git add .
         git commit -m "Update built files" || echo "No changes to commit"
         git push origin main
