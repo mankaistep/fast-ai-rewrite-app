@@ -6,5 +6,5 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function helloWorld() {
-  return "hello world :D"
+  return "hello world :3"
 }
