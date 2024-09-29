@@ -26,6 +26,15 @@ jobs:
     - name: Build project
       run: bash ./build_script.sh
 
+    - name: Debug - List directories
+      run: |
+        echo "Current directory:"
+        ls -la
+        echo "temp_built directory:"
+        ls -la temp_built
+        echo "temp_built/.next directory:"
+        ls -la temp_built/.next
+
     - name: Setup Git
       run: |
         git config --global user.name 'GitHub Action'
@@ -55,12 +64,13 @@ jobs:
         git checkout main || git checkout -b main
         find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
         cp -R ../temp_built/* .
+        cp -R ../temp_built/.next .
 
     - name: Verify built files
       run: |
         cd fast-ai-rewrite-app-built
-        echo "Contents of built repository:"
-        ls -R
+        echo "Contents of current directory:"
+        ls -la
         echo "Checking for .next folder:"
         if [ -d ".next" ]; then
           echo ".next folder exists"
@@ -78,4 +88,3 @@ jobs:
         git push origin main
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
-  

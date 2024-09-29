@@ -1,7 +1,13 @@
 #!/bin/bash
 
+set -x  # Enable debug mode
+
 # Run Next.js build
 npm run build
+
+# Print current directory and list contents
+pwd
+ls -la
 
 # Create a temporary directory for the built files
 mkdir -p temp_built
@@ -9,10 +15,10 @@ mkdir -p temp_built
 # Copy the entire .next folder, including the standalone and other content
 cp -R .next temp_built/
 
-# Copy standalone build to the temporary directory (if you need this)
+# Copy standalone build to the temporary directory
 cp -R .next/standalone/* temp_built/
 
-# Ensure server.js is in the root (if applicable)
+# Ensure server.js is in the root
 if [ -f temp_built/.next/standalone/server.js ]; then
   mv temp_built/.next/standalone/server.js temp_built/
 fi
@@ -40,3 +46,9 @@ export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
 chmod +x temp_built/start.sh
+
+# List contents of temp_built
+echo "Contents of temp_built:"
+ls -la temp_built
+echo "Contents of temp_built/.next:"
+ls -la temp_built/.next
