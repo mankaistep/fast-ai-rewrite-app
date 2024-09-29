@@ -1,0 +1,58 @@
+name: Build and Push to Repo Built
+
+on:
+  push:
+    branches:
+      - main  # or your default branch name
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repo A
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '21.7.1'  # or your preferred Node.js version
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Prepare built files
+      run: |
+        mkdir -p temp_built
+        cp -R .next/standalone/* temp_built/
+        cp -R .next/static temp_built/.next/
+        cp package.json temp_built/
+        if [ -d "public" ]; then
+          cp -R public temp_built/
+        fi
+        echo "node_modules" > temp_built/.gitignore
+        echo ".env" >> temp_built/.gitignore
+
+    - name: Checkout Repo Built
+      uses: actions/checkout@v2
+      with:
+        repository: mankaistep/fast-ai-rewrite-app-built
+        token: ${{ secrets.REPO_BUILT_TOKEN }}
+        path: fast-ai-rewrite-app-built
+
+    - name: Copy built files to Repo Built
+      run: |
+        cd fast-ai-rewrite-app-built
+        find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
+        cp -R ../temp_built/* .
+
+    - name: Commit and push to Repo Built
+      run: |
+        cd fast-ai-rewrite-app-built
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "Update built files" || echo "No changes to commit"
+        git push
