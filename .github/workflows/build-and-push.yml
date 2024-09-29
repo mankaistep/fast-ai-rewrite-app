@@ -56,6 +56,21 @@ jobs:
         find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
         cp -R ../temp_built/* .
 
+    - name: Verify built files
+      run: |
+        cd fast-ai-rewrite-app-built
+        echo "Contents of built repository:"
+        ls -R
+        echo "Contents of .gitignore:"
+        cat .gitignore
+        echo "Checking for .next folder:"
+        if [ -d ".next" ]; then
+          echo ".next folder exists"
+          ls -la .next
+        else
+          echo ".next folder is missing"
+        fi
+
     - name: Commit and push to Repo Built
       run: |
         cd fast-ai-rewrite-app-built

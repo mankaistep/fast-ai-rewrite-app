@@ -6,16 +6,16 @@ npm run build
 # Create a temporary directory for the built files
 mkdir -p temp_built
 
+# Copy the entire .next folder
+cp -R .next temp_built/
+
 # Copy standalone build to the temporary directory
 cp -R .next/standalone/* temp_built/
 
-# Create .next directory and copy required files
-mkdir -p temp_built/.next
-cp -R .next/static temp_built/.next/
-cp -R .next/standalone/.next/routes temp_built/.next/
-cp -R .next/standalone/.next/server temp_built/.next/
-cp -R .next/standalone/.next/build-manifest.json temp_built/.next/
-cp -R .next/standalone/.next/react-loadable-manifest.json temp_built/.next/
+# Ensure server.js is in the root
+if [ -f temp_built/.next/standalone/server.js ]; then
+  mv temp_built/.next/standalone/server.js temp_built/
+fi
 
 cp package.json temp_built/
 
@@ -28,6 +28,9 @@ fi
 echo "node_modules" > temp_built/.gitignore
 echo ".env" >> temp_built/.gitignore
 
+# Ensure .next is not in .gitignore
+sed -i '/^\.next/d' temp_built/.gitignore
+
 # Create a start script
 cat << EOF > temp_built/start.sh
 #!/bin/bash
@@ -37,3 +40,7 @@ export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
 chmod +x temp_built/start.sh
+
+# Debug: List contents of temp_built
+echo "Contents of temp_built:"
+ls -R temp_built
