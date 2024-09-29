@@ -3,7 +3,7 @@ name: Build and Push to Repo Built
 on:
   push:
     branches:
-      - main  # or your default branch name
+      - main  # or your default branch name for Repo A
 
 jobs:
   build-and-push:
@@ -15,7 +15,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '21.7.1'  # or your preferred Node.js version
+        node-version: '21.7.1'
 
     - name: Install dependencies
       run: npm ci
@@ -26,40 +26,41 @@ jobs:
     - name: Build project
       run: bash ./build_script.sh
 
-    - name: Checkout Repo Built
-      uses: actions/checkout@v2
-      with:
-        repository: your-username/repo-built
-        token: ${{ secrets.REPO_BUILT_TOKEN }}
-        path: repo-built
-        fetch-depth: 0
-
-    - name: Setup Repo Built if empty
+    - name: Setup Git
       run: |
-        cd repo-built
-        if [ -z "$(git branch)" ]; then
-          echo "Initializing Repo Built"
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          echo "# Repo Built" > README.md
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+
+    - name: Clone or initialize Repo Built
+      run: |
+        if git clone https://x-access-token:${GITHUB_TOKEN}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
+          cd fast-ai-rewrite-app-built
+        else
+          mkdir fast-ai-rewrite-app-built
+          cd fast-ai-rewrite-app-built
+          git init
+          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/mankaistep/fast-ai-rewrite-app-built.git
+          echo "# Fast AI Rewrite App Built" > README.md
           git add README.md
           git commit -m "Initial commit"
           git branch -M main
           git push -u origin main
         fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
 
     - name: Copy built files to Repo Built
       run: |
-        cd repo-built
+        cd fast-ai-rewrite-app-built
         git checkout main || git checkout -b main
         find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
         cp -R ../temp_built/* .
 
     - name: Commit and push to Repo Built
       run: |
-        cd repo-built
-        git config user.name github-actions
-        git config user.email github-actions@github.com
+        cd fast-ai-rewrite-app-built
         git add .
         git commit -m "Update built files" || echo "No changes to commit"
         git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
