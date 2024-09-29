@@ -6,13 +6,13 @@ npm run build
 # Create a temporary directory for the built files
 mkdir -p temp_built
 
-# Copy the entire .next folder
-cp -R .next temp_built/.next
+# Copy the entire .next folder, including the standalone and other content
+cp -R .next temp_built/
 
-# Copy standalone build to the temporary directory
+# Copy standalone build to the temporary directory (if you need this)
 cp -R .next/standalone/* temp_built/
 
-# Ensure server.js is in the root
+# Ensure server.js is in the root (if applicable)
 if [ -f temp_built/.next/standalone/server.js ]; then
   mv temp_built/.next/standalone/server.js temp_built/
 fi
@@ -28,7 +28,7 @@ fi
 echo "node_modules" > temp_built/.gitignore
 echo ".env" >> temp_built/.gitignore
 
-# Ensure .next is not excluded in .gitignore
+# Remove .next from .gitignore
 sed -i '/^\/\.next/d' temp_built/.gitignore
 
 # Create a start script
