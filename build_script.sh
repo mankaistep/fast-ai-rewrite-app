@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -x  # Enable debug mode
 
 # Run Next.js build
@@ -45,8 +44,13 @@ cd ..
 # Create a start script
 cat << EOF > temp_built/start.sh
 #!/bin/bash
+set -e
+
+# Perform git pull
+git pull
+
 export NODE_ENV=production
-export PORT=\${PORT:-3000}
+export PORT=80
 export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
