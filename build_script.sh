@@ -50,7 +50,7 @@ set -e
 git pull
 
 export NODE_ENV=production
-export PORT=80
+export PORT=${PORT:-3000}
 export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
