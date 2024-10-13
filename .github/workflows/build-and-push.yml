@@ -84,7 +84,9 @@ jobs:
         fi
 
     - name: Track LFS file
-      run: git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
+      run: |
+        git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
+        git add .gitattributes
 
     - name: Commit and push to Repo Built
       run: |
