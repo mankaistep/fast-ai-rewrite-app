@@ -17,9 +17,14 @@ cp -R .next temp_built/
 # Copy standalone build to the temporary directory
 cp -R .next/standalone/* temp_built/
 
-# Ensure server.js is in the root
-if [ -f temp_built/.next/standalone/server.js ]; then
-  mv temp_built/.next/standalone/server.js temp_built/
+# Ensure server.js is in the root of temp_built
+if [ -f .next/standalone/server.js ]; then
+  cp .next/standalone/server.js temp_built/
+elif [ -f server.js ]; then
+  cp server.js temp_built/
+else
+  echo "Error: server.js not found"
+  exit 1
 fi
 
 # Copy the package.json to the temporary directory
@@ -57,7 +62,7 @@ set -e
 git pull
 
 export NODE_ENV=production
-export PORT=${PORT:-80}
+export PORT=\${PORT:-80}
 export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
