@@ -20,27 +20,6 @@ cp -R .next/standalone/* temp_built/
 # Ensure server.js is in the root
 if [ -f .next/standalone/server.js ]; then
   cp .next/standalone/server.js temp_built/
-elif [ -f server.js ]; then
-  cp server.js temp_built/
-else
-  echo "Warning: server.js not found. Creating a basic server.js file."
-  cat << EOF > temp_built/server.js
-const next = require('next')
-const http = require('http')
-
-const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev, dir: __dirname })
-const handle = app.getRequestHandler()
-
-app.prepare().then(() => {
-  http.createServer((req, res) => {
-    handle(req, res)
-  }).listen(process.env.PORT || 80, (err) => {
-    if (err) throw err
-    console.log('> Ready on http://localhost:' + (process.env.PORT || 80))
-  })
-})
-EOF
 fi
 
 cp package.json temp_built/
