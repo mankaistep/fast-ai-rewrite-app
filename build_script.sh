@@ -17,17 +17,11 @@ cp -R .next temp_built/
 # Copy standalone build to the temporary directory
 cp -R .next/standalone/* temp_built/
 
-# Ensure server.js is in the root of temp_built
-if [ -f .next/standalone/server.js ]; then
-  cp .next/standalone/server.js temp_built/
-elif [ -f server.js ]; then
-  cp server.js temp_built/
-else
-  echo "Error: server.js not found"
-  exit 1
+# Ensure server.js is in the root
+if [ -f temp_built/.next/standalone/server.js ]; then
+  mv temp_built/.next/standalone/server.js temp_built/
 fi
 
-# Copy the package.json to the temporary directory
 cp package.json temp_built/
 
 # Copy the Prisma folder (assuming it's named 'prisma')
@@ -47,10 +41,9 @@ echo ".env" >> temp_built/.gitignore
 # Remove .next from .gitignore
 sed -i '/^\/\.next/d' temp_built/.gitignore
 
-# Install only necessary dependencies in the temp_built directory
+# Install sharp in the temp_built directory
 cd temp_built
-# Install dependencies, excluding node_modules in the main directory
-npm install --production
+npm install sharp
 cd ..
 
 # Create a start script
@@ -62,7 +55,7 @@ set -e
 git pull
 
 export NODE_ENV=production
-export PORT=\${PORT:-80}
+export PORT=${PORT:-80}
 export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF

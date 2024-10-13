@@ -44,9 +44,19 @@ jobs:
 
       - name: Clone or initialize Repo Built
         run: |
-          git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
-          cd fast-ai-rewrite-app-built
-          git lfs install
+          if git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
+            cd fast-ai-rewrite-app-built
+          else
+            mkdir fast-ai-rewrite-app-built
+            cd fast-ai-rewrite-app-built
+            git init
+            git remote add origin https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
+            echo "# Fast AI Rewrite App Built" > README.md
+            git add README.md
+            git commit -m "Initial commit"
+            git branch -M main
+            git push -u origin main
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
 
@@ -54,9 +64,26 @@ jobs:
         run: |
           cd fast-ai-rewrite-app-built
           git checkout main || git checkout -b main
-          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' ! -name '.gitattributes' -exec rm -rf {} +
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
           cp -R ../temp_built/* .
           cp -R ../temp_built/.next .
+
+      - name: Verify built files
+        run: |
+          cd fast-ai-rewrite-app-built
+          echo "Contents of current directory:"
+          ls -la
+          echo "Checking for .next folder:"
+          if [ -d ".next" ]; then
+            echo ".next folder exists"
+            ls -la .next
+          else
+            echo ".next folder is missing"
+            exit 1
+          fi
+
+      - name: Track LFS file
+        run: git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
 
       - name: Setup Git LFS tracking
         run: |
