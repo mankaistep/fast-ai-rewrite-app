@@ -24,6 +24,11 @@ fi
 
 cp package.json temp_built/
 
+# Copy the Prisma folder (assuming it's named 'prisma')
+if [ -d "prisma" ]; then
+  cp -R prisma temp_built/
+fi
+
 # Copy public folder if it exists
 if [ -d "public" ]; then
   cp -R public temp_built/

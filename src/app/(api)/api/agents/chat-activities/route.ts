@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 export async function GET(req: NextRequest) {
     try {
         // Extract query parameters
-        const { searchParams } = new URL(req.url);
+        const { searchParams } = req.nextUrl;
         const agentId = searchParams.get('agentId');
 
         // Validate agentId

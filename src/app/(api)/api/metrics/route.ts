@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import {getToken} from "next-auth/jwt";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/(api)/api/auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
@@ -18,12 +19,9 @@ type DashboardMetrics = {
 
 export async function GET(request: NextRequest) {
     try {
-        const token = await getToken({
-            req: request,
-            secret: process.env.NEXTAUTH_SECRET
-        })
+        const session = await getServerSession(authOptions); // Use getServerSession
 
-        if (!token) {
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
