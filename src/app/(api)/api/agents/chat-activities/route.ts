@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
     try {
         // Extract query parameters
-        const { searchParams } = req.nextUrl;
+        const { searchParams } = new URL(req.url);
         const agentId = searchParams.get('agentId');
 
         // Validate agentId
