@@ -17,9 +17,42 @@ cp -R .next temp_built/
 # Copy standalone build to the temporary directory
 cp -R .next/standalone/* temp_built/
 
-# Ensure server.js is in the root
-if [ -f temp_built/.next/standalone/server.js ]; then
-  mv temp_built/.next/standalone/server.js temp_built/
+# Check for server.js in various locations and copy it to temp_built
+if [ -f .next/standalone/server.js ]; then
+  cp .next/standalone/server.js temp_built/
+elif [ -f .next/server.js ]; then
+  cp .next/server.js temp_built/
+elif [ -f server.js ]; then
+  cp server.js temp_built/
+else
+  echo "Warning: server.js not found in expected locations. Creating a basic server.js file."
+  cat << EOF > temp_built/server.js
+const { createServer } = require('http')
+const { parse } = require('url')
+const next = require('next')
+
+const dev = process.env.NODE_ENV !== 'production'
+const hostname = process.env.HOST || '0.0.0.0'
+const port = process.env.PORT || 80
+const app = next({ dev, hostname, port })
+const handle = app.getRequestHandler()
+
+app.prepare().then(() => {
+  createServer(async (req, res) => {
+    try {
+      const parsedUrl = parse(req.url, true)
+      await handle(req, res, parsedUrl)
+    } catch (err) {
+      console.error('Error occurred handling', req.url, err)
+      res.statusCode = 500
+      res.end('internal server error')
+    }
+  }).listen(port, hostname, (err) => {
+    if (err) throw err
+    console.log(\`> Ready on http://\${hostname}:\${port}\`)
+  })
+})
+EOF
 fi
 
 cp package.json temp_built/
@@ -44,6 +77,7 @@ sed -i '/^\/\.next/d' temp_built/.gitignore
 # Install sharp in the temp_built directory
 cd temp_built
 npm install sharp
+npm install next  # Ensure next is installed
 cd ..
 
 # Create a start script
@@ -55,7 +89,7 @@ set -e
 git pull
 
 export NODE_ENV=production
-export PORT=${PORT:-80}
+export PORT=\${PORT:-80}
 export HOST=\${HOST:-0.0.0.0}
 node server.js
 EOF
