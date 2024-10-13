@@ -9,90 +9,78 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repo A
-      uses: actions/checkout@v2
+      - name: Checkout Repo A
+        uses: actions/checkout@v2
 
-    - name: Install Git LFS
-      run: git lfs install  # Install Git LFS
+      - name: Install Git LFS
+        run: git lfs install  # Install Git LFS
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '21.7.1'
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '21.7.1'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Make build script executable
-      run: chmod +x ./build_script.sh
+      - name: Make build script executable
+        run: chmod +x ./build_script.sh
 
-    - name: Build project
-      run: bash ./build_script.sh
+      - name: Build project
+        run: bash ./build_script.sh
 
-    - name: Debug - List directories
-      run: |
-        echo "Current directory:"
-        ls -la
-        echo "temp_built directory:"
-        ls -la temp_built
-        echo "temp_built/.next directory:"
-        ls -la temp_built/.next
+      - name: Debug - List directories
+        run: |
+          echo "Current directory:"
+          ls -la
+          echo "temp_built directory:"
+          ls -la temp_built
+          echo "temp_built/.next directory:"
+          ls -la temp_built/.next
 
-    - name: Setup Git
-      run: |
-        git config --global user.name 'GitHub Action'
-        git config --global user.email 'action@github.com'
+      - name: Setup Git
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
 
-    - name: Clone or initialize Repo Built
-      run: |
-        if git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
+      - name: Clone or initialize Repo Built
+        run: |
+          if git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
+            cd fast-ai-rewrite-app-built
+          else
+            mkdir fast-ai-rewrite-app-built
+            cd fast-ai-rewrite-app-built
+            git init
+            git remote add origin https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
+            echo "# Fast AI Rewrite App Built" > README.md
+            git add README.md
+            git commit -m "Initial commit"
+            git branch -M main
+            git push -u origin main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
+
+      - name: Copy built files to Repo Built
+        run: |
           cd fast-ai-rewrite-app-built
-        else
-          mkdir fast-ai-rewrite-app-built
+          git checkout main || git checkout -b main
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
+          cp -R ../temp_built/* .
+          cp -R ../temp_built/.next .
+
+      - name: Track LFS file
+        run: |
+          git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
+          echo "Tracked files:"
+          cat .gitattributes  # Display tracked files
+
+      - name: Commit and push to Repo Built
+        run: |
           cd fast-ai-rewrite-app-built
-          git init
-          git remote add origin https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
-          echo "# Fast AI Rewrite App Built" > README.md
-          git add README.md
-          git commit -m "Initial commit"
-          git branch -M main
-          git push -u origin main
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
-
-    - name: Copy built files to Repo Built
-      run: |
-        cd fast-ai-rewrite-app-built
-        git checkout main || git checkout -b main
-        find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
-        cp -R ../temp_built/* .
-        cp -R ../temp_built/.next .
-
-    - name: Verify built files
-      run: |
-        cd fast-ai-rewrite-app-built
-        echo "Contents of current directory:"
-        ls -la
-        echo "Checking for .next folder:"
-        if [ -d ".next" ]; then
-          echo ".next folder exists"
-          ls -la .next
-        else
-          echo ".next folder is missing"
-          exit 1
-        fi
-
-    - name: Track LFS file
-      run: |
-        git lfs track "*.node"
-
-    - name: Commit and push to Repo Built
-      run: |
-        cd fast-ai-rewrite-app-built
-        git add .gitattributes || echo ".gitattributes not found, skipping add."
-        git add .
-        git commit -m "Update built files" || echo "No changes to commit"
-        git push origin main
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
+          git add .gitattributes || echo ".gitattributes not found, skipping add."
+          git add .
+          git commit -m "Update built files" || echo "No changes to commit"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
