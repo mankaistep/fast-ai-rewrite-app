@@ -90,7 +90,7 @@ jobs:
     - name: Commit and push to Repo Built
       run: |
         cd fast-ai-rewrite-app-built
-        git add .gitattributes  # Make sure to add the .gitattributes
+        git add .gitattributes || echo ".gitattributes not found, skipping add."
         git add .
         git commit -m "Update built files" || echo "No changes to commit"
         git push origin main
