@@ -11,9 +11,8 @@ jobs:
     steps:
       - name: Checkout Repo A
         uses: actions/checkout@v2
-
-      - name: Install Git LFS
-        run: git lfs install  # Install Git LFS
+        with:
+          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -45,19 +44,9 @@ jobs:
 
       - name: Clone or initialize Repo Built
         run: |
-          if git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git; then
-            cd fast-ai-rewrite-app-built
-          else
-            mkdir fast-ai-rewrite-app-built
-            cd fast-ai-rewrite-app-built
-            git init
-            git remote add origin https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
-            echo "# Fast AI Rewrite App Built" > README.md
-            git add README.md
-            git commit -m "Initial commit"
-            git branch -M main
-            git push -u origin main
-          fi
+          git clone https://x-access-token:${{ secrets.REPO_BUILT_TOKEN }}@github.com/mankaistep/fast-ai-rewrite-app-built.git
+          cd fast-ai-rewrite-app-built
+          git lfs install
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_BUILT_TOKEN }}
 
@@ -65,21 +54,20 @@ jobs:
         run: |
           cd fast-ai-rewrite-app-built
           git checkout main || git checkout -b main
-          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' -exec rm -rf {} +
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.gitignore' ! -name '.gitattributes' -exec rm -rf {} +
           cp -R ../temp_built/* .
           cp -R ../temp_built/.next .
 
-      - name: Track LFS file
+      - name: Setup Git LFS tracking
         run: |
+          cd fast-ai-rewrite-app-built
           git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
-          echo "Tracked files:"
-          cat .gitattributes  # Display tracked files
+          git add .gitattributes
+          git commit -m "Update .gitattributes for LFS" || echo "No changes to commit for .gitattributes"
 
       - name: Commit and push to Repo Built
         run: |
           cd fast-ai-rewrite-app-built
-          git rm --cached node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node
-          git add .gitattributes || echo ".gitattributes not found, skipping add."
           git add .
           git commit -m "Update built files" || echo "No changes to commit"
           git push origin main
