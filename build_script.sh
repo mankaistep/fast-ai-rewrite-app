@@ -22,6 +22,7 @@ if [ -f temp_built/.next/standalone/server.js ]; then
   mv temp_built/.next/standalone/server.js temp_built/
 fi
 
+# Copy the package.json to the temporary directory
 cp package.json temp_built/
 
 # Copy the Prisma folder (assuming it's named 'prisma')
@@ -41,9 +42,10 @@ echo ".env" >> temp_built/.gitignore
 # Remove .next from .gitignore
 sed -i '/^\/\.next/d' temp_built/.gitignore
 
-# Install sharp in the temp_built directory
+# Install only necessary dependencies in the temp_built directory
 cd temp_built
-npm install sharp
+# Install dependencies, excluding node_modules in the main directory
+npm install --production
 cd ..
 
 # Create a start script
