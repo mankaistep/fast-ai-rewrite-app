@@ -82,9 +82,6 @@ jobs:
             exit 1
           fi
 
-      - name: Track LFS file
-        run: git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
-
       - name: Setup Git LFS tracking
         run: |
           cd fast-ai-rewrite-app-built
