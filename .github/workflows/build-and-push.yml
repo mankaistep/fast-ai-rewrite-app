@@ -86,11 +86,11 @@ jobs:
     - name: Track LFS file
       run: |
         git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
-        git add .gitattributes
 
     - name: Commit and push to Repo Built
       run: |
         cd fast-ai-rewrite-app-built
+        git add .gitattributes  # Make sure to add the .gitattributes
         git add .
         git commit -m "Update built files" || echo "No changes to commit"
         git push origin main
