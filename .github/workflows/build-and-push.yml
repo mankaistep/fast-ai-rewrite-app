@@ -82,13 +82,6 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Git LFS tracking
-        run: |
-          cd fast-ai-rewrite-app-built
-          git lfs track "*.node"
-          git add .gitattributes
-          git commit -m "Update .gitattributes for LFS" || echo "No changes to commit for .gitattributes"
-
       - name: Commit and push to Repo Built
         run: |
           cd fast-ai-rewrite-app-built
