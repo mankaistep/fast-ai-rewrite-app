@@ -41,6 +41,7 @@ echo ".env" >> temp_built/.gitignore
 # Install dependencies in the temp_built directory
 cd temp_built
 npm install --production
+npm install sharp
 cd ..
 
 # Create a start script
