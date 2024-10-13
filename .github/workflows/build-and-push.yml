@@ -12,6 +12,9 @@ jobs:
     - name: Checkout Repo A
       uses: actions/checkout@v2
 
+    - name: Install Git LFS
+      run: git lfs install  # Install Git LFS
+
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
@@ -79,6 +82,9 @@ jobs:
           echo ".next folder is missing"
           exit 1
         fi
+
+    - name: Track LFS file
+      run: git lfs track "node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node"
 
     - name: Commit and push to Repo Built
       run: |
