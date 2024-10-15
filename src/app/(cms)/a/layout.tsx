@@ -13,7 +13,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import { Users, Menu, LayoutDashboard, LogOut, MessageSquare } from "lucide-react"
+import {Users, Menu, LayoutDashboard, LogOut, MessageSquare, PenTool} from "lucide-react"
 import { signOut, useSession } from "next-auth/react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -57,7 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                             <SheetTrigger asChild>
                                 <Button variant="ghost" size="icon" className="lg:hidden">
-                                    <Menu className="h-6 w-6" />
+                                    <Menu className="h-6 w-6"/>
                                     <span className="sr-only">Toggle sidebar</span>
                                 </Button>
                             </SheetTrigger>
@@ -65,11 +65,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <SheetHeader>
                                     <SheetTitle></SheetTitle>
                                 </SheetHeader>
-                                <SidebarContent pathname={pathname} onLogout={handleLogout} onNavigation={handleNavigation} />
+                                <SidebarContent pathname={pathname} onLogout={handleLogout}
+                                                onNavigation={handleNavigation}/>
                             </SheetContent>
                         </Sheet>
-                        <div className="ml-4 lg:ml-0">
-                            <h3 className="text-xl font-bold">Fast AI Rewrite ✦</h3>
+                        <div className="ml-4 lg:ml-0 flex items-center space-x-2">
+                            <PenTool className="h-6 w-6"/>
+                            <h3 className="text-xl font-bold">Fast AI Rewrite</h3>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
