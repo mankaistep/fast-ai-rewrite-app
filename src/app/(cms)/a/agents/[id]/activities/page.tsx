@@ -104,6 +104,7 @@ export default function AgentActivitiesPage({ params }: { params: { id: string }
             const data = await response.json()
             setActivities(data.activities)
             setPagination(data.pagination)
+            setIsLoading(false)
         } catch (error) {
             // ...
         }
