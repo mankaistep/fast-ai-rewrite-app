@@ -56,7 +56,7 @@ export default function Component() {
                     <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Supercharge Your Writing Process</h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         {[
-                            { icon: <Zap className="h-8 w-8 text-yellow-500" />, title: "Lightning Fast", description: "Get results in seconds, not hours" },
+                            { icon: <Zap className="h-8 w-8 text-yellow-500" />, title: "Lightning Fast", description: "Get results in seconds, fast as shit" },
                             { icon: <Sparkles className="h-8 w-8 text-blue-500" />, title: "AI-Powered Creativity", description: "Unlock new levels of originality" },
                             { icon: <Rocket className="h-8 w-8 text-red-500" />, title: "Boost Productivity", description: "10x your content output effortlessly" }
                         ].map((feature, index) => (
@@ -85,13 +85,16 @@ export default function Component() {
                                 <CardTitle className="text-xl">Web App</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-600">
+                                <ol className="list-decimal list-inside space-y-2 text-gray-600 mb-4">
                                     <li>Create your own AI agents</li>
-                                    <li>Customize each agent's writing style and tone</li>
                                     <li>Input your content directly in the app</li>
                                     <li>Get instant AI-powered rewrites</li>
-                                    <li>Edit and refine the results as needed</li>
                                 </ol>
+                                <div className="flex justify-start">
+                                    <Button variant="outline" size="sm">
+                                        Open app
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                         <Card>
@@ -100,13 +103,16 @@ export default function Component() {
                                 <CardTitle className="text-xl">Chrome Extension</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-600">
-                                    <li>Install our Chrome extension</li>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-600 mb-4">
                                     <li>Select text on any webpage</li>
-                                    <li>Click the FastAI Rewrite extension icon</li>
                                     <li>Choose your preferred AI agent</li>
                                     <li>Get instant rewrites without leaving the page</li>
                                 </ol>
+                                <div className="flex justify-start">
+                                    <Button variant="outline" size="sm">
+                                        Get extension
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -132,7 +138,7 @@ export default function Component() {
                                 ))}
                             </ul>
                             <p className="text-sm text-gray-600 mb-4">
-                                It's free because I haven't figured out how to charge yet 😉
+                                It's free because I haven't figured out how to implement the charging yet 😉. Free and no risk so why the f you hesitate?
                             </p>
                             <Button className="w-full text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
                                 Let's go
@@ -146,9 +152,9 @@ export default function Component() {
             <section className="py-20 px-4">
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">See the Magic in Action</h2>
-                    <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-xl">
+                    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                         <iframe
-                            className="w-full h-full"
+                            className="absolute top-0 left-0 w-full h-full rounded-lg shadow-xl"
                             src="https://www.youtube.com/embed/dQw4w9WgXcQ"
                             title="FastAI Rewrite Demo"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -161,7 +167,7 @@ export default function Component() {
             {/* CTA Section */}
             <section className="py-20 px-4 text-center bg-gray-50">
                 <h2 className="text-4xl font-extrabold mb-6 text-gray-900">Ready to Transform Your Writing?</h2>
-                <p className="text-xl mb-8 text-gray-600">Join thousands of satisfied users and start rewriting smarter, not harder.</p>
+                <p className="text-xl mb-8 text-gray-600">Join thousands of satisfied users (sorry I lied) and start rewriting smarter, not harder.</p>
                 <Button size="lg" className="text-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
                     Start Rewriting <ArrowRight className="ml-2" />
                 </Button>
