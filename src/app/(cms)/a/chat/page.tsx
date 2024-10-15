@@ -300,7 +300,7 @@ export default function ChatPage() {
                                 </div>
                                 <Button
                                     onClick={handleSubmit}
-                                    className={`w-full mt-auto ${isLoading ? 'animate-pulse' : ''}`}
+                                    className={`w-full mt-auto ${isLoading ? 'animate-pulse' : ''} text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700`}
                                     disabled={isLoading || !selectedAgent}
                                 >
                                     {isLoading ? (
