@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         }
 
         // @ts-ignore
-        const userEmail = token.email
+        const userEmail = session.user.email
 
         const user = await prisma.user.findFirst({
             where: { email: userEmail },
