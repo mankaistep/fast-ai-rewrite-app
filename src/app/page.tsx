@@ -1,11 +1,19 @@
+"use client"
+
 import React from 'react'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Zap, Sparkles, Rocket, Check, Chrome, Globe, PenTool } from 'lucide-react'
+import {useRouter} from "next/navigation";
 
 export default function Component() {
+    const router = useRouter()
+    const handleOpenApp = () => {
+        router.push('/a/dashboard')
+    }
+
     return (
         <div className="min-h-screen bg-white text-gray-900">
             {/* Header */}
@@ -15,7 +23,7 @@ export default function Component() {
                         <PenTool className="h-6 w-6 text-indigo-600" />
                         <div className="text-2xl font-bold text-indigo-600">FastAI Rewrite</div>
                     </div>
-                    <Button variant="outline" className="text-indigo-600 border-indigo-600 hover:bg-indigo-50">
+                    <Button variant="outline" className="text-indigo-600 border-indigo-600 hover:bg-indigo-50" onClick={handleOpenApp}>
                         Open app
                     </Button>
                 </nav>
@@ -41,9 +49,10 @@ export default function Component() {
                             Revolutionize Your Writing with AI-Powered Magic
                         </h1>
                         <p className="text-xl mb-8 text-gray-600">
+                            {/* eslint-disable-next-line react/no-unescaped-entities */}
                             Transform your content instantly with our cutting-edge AI technology. Say goodbye to writer's block and hello to limitless creativity!
                         </p>
-                        <Button size="lg" className="text-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
+                        <Button size="lg" className="text-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700" onClick={handleOpenApp}>
                             Open FastAI Rewrite <ArrowRight className="ml-2" />
                         </Button>
                     </div>
@@ -91,7 +100,7 @@ export default function Component() {
                                     <li>Get instant AI-powered rewrites</li>
                                 </ol>
                                 <div className="flex justify-start">
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" onClick={handleOpenApp}>
                                         Open app
                                     </Button>
                                 </div>
@@ -138,9 +147,11 @@ export default function Component() {
                                 ))}
                             </ul>
                             <p className="text-sm text-gray-600 mb-4">
+                                {/* eslint-disable-next-line react/no-unescaped-entities */}
                                 It's free because I haven't figured out how to implement the charging yet 😉. Free and no risk so why the f you hesitate?
                             </p>
-                            <Button className="w-full text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
+                            <Button className="w-full text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700" onClick={handleOpenApp}>
+                                {/* eslint-disable-next-line react/no-unescaped-entities */}
                                 Let's go
                             </Button>
                         </CardContent>
@@ -168,7 +179,7 @@ export default function Component() {
             <section className="py-20 px-4 text-center bg-gray-50">
                 <h2 className="text-4xl font-extrabold mb-6 text-gray-900">Ready to Transform Your Writing?</h2>
                 <p className="text-xl mb-8 text-gray-600">Join thousands of satisfied users (sorry I lied) and start rewriting smarter, not harder.</p>
-                <Button size="lg" className="text-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
+                <Button size="lg" className="text-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700" onClick={handleOpenApp}>
                     Start Rewriting <ArrowRight className="ml-2" />
                 </Button>
             </section>
