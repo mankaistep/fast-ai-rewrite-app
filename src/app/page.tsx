@@ -33,17 +33,17 @@ export default function Component() {
             <section className="py-20 px-4">
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center">
                     <div className="lg:w-1/2 mb-10 lg:mb-0">
-                        <Image
-                            src="/placeholder.svg?height=400&width=400"
+                        <img
+                            src="https://cdn.shopify.com/s/files/1/0600/1655/8168/files/home-illu-2.png?v=1729093429"
                             alt="AI Writing Assistant"
-                            width={400}
+                            width={450}
                             height={400}
                             className="mx-auto lg:mx-0"
                         />
                     </div>
                     <div className="lg:w-1/2 text-center lg:text-left">
                         <Badge variant="outline" className="mb-4 text-indigo-600 border-indigo-600">
-                            AI-Powered Writing
+                        AI-Powered Writing
                         </Badge>
                         <h1 className="text-5xl font-extrabold mb-6 leading-tight text-gray-900">
                             Revolutionize Your Writing with AI-Powered Magic
@@ -65,7 +65,7 @@ export default function Component() {
                     <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Supercharge Your Writing Process</h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         {[
-                            { icon: <Zap className="h-8 w-8 text-yellow-500" />, title: "Lightning Fast", description: "Get results in seconds, fast as shit" },
+                            { icon: <Zap className="h-8 w-8 text-yellow-500" />, title: "Lightning Fast", description: "Get results in seconds, nhanh vkl luon" },
                             { icon: <Sparkles className="h-8 w-8 text-blue-500" />, title: "AI-Powered Creativity", description: "Unlock new levels of originality" },
                             { icon: <Rocket className="h-8 w-8 text-red-500" />, title: "Boost Productivity", description: "10x your content output effortlessly" }
                         ].map((feature, index) => (
@@ -135,7 +135,7 @@ export default function Component() {
                     <Card className="w-full max-w-md mx-auto border-2 border-indigo-200">
                         <CardHeader>
                             <CardTitle className="text-2xl text-indigo-600">Unlimited Plan</CardTitle>
-                            <CardDescription>Get started with FastAI Rewrite at no cost</CardDescription>
+                            <CardDescription>Credit card required (nah just joking, hehe dua ty)</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <p className="text-4xl font-bold mb-4 text-gray-900">$0 <span className="text-lg font-normal text-gray-600">/ month</span></p>
@@ -166,7 +166,7 @@ export default function Component() {
                     <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                         <iframe
                             className="absolute top-0 left-0 w-full h-full rounded-lg shadow-xl"
-                            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                            src="https://www.youtube.com/embed/hB7CDrVnNCs?si=SGlUy9kYv3xb2-c4"
                             title="FastAI Rewrite Demo"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -187,7 +187,7 @@ export default function Component() {
             {/* Footer */}
             <footer className="py-6 px-4 bg-gray-100 text-center">
                 <p className="text-sm text-gray-600">
-                    © {new Date().getFullYear()} FastAI Rewrite. All rights reserved. Made with ❤️ by AI enthusiasts.
+                    © {new Date().getFullYear()} FastAI Rewrite. All rights reserved. Made with ❤️ by Nguyen Huy Hoang sieu dep trai.
                 </p>
             </footer>
         </div>
