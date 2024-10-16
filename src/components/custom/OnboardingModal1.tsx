@@ -7,7 +7,7 @@ import {
     DialogContent,
     DialogFooter,
 } from "@/components/ui/dialog"
-import { Zap, Cpu, Rocket } from 'lucide-react'
+import { Zap, Sparkles, Rocket } from 'lucide-react'
 
 interface OnboardingModalProps {
     isOpen: boolean
@@ -57,7 +57,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
                             transition={{ delay: 0.4 }}
                             className="flex flex-col items-center"
                         >
-                            <Cpu className="h-16 w-16 text-blue-500" />
+                            <Sparkles className="h-16 w-16 text-blue-500" />
                             <p className="mt-2 font-semibold text-gray-700">AI-Powered</p>
                         </motion.div>
                         <motion.div
