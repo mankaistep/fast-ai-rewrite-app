@@ -141,7 +141,10 @@ export default function AgentsPage() {
                         </TableCell>
                         <TableCell className="font-medium">{agent.name}</TableCell>
                         <TableCell>
-                            <Badge variant={agent.status === "active" ? "default" : "secondary"}>
+                            <Badge
+                                variant={agent.status === "active" ? "default" : "secondary"}
+                                className={agent.status === "active" ? "bg-green-100 text-green-800" : ""}
+                            >
                                 {agent.status}
                             </Badge>
                         </TableCell>

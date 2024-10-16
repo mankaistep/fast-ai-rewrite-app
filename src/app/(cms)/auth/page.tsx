@@ -1,11 +1,12 @@
 "use client"
 
 import { signIn } from "next-auth/react"
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {PenTool} from "lucide-react";
 
 export default function LoginPage() {
     const [error, setError] = useState("")
@@ -34,15 +35,9 @@ export default function LoginPage() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100">
             <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-6 shadow-md">
-                <div className="text-center">
-                    <Image
-                        src="/favicon.ico"
-                        alt="Fast AI Rewrite Logo"
-                        width={64}
-                        height={64}
-                        className="mx-auto"
-                    />
-                    <h1 className="mt-6 text-3xl font-bold text-gray-900">Fast AI Rewrite ✦</h1>
+                <div className="text-center flex flex-col items-center">
+                    <PenTool className="h-12 w-12"/>
+                    <h1 className="mt-6 text-3xl font-bold text-gray-900">Fast AI Rewrite</h1>
                     <p className="mt-2 text-sm text-gray-600">
                         {/* eslint-disable-next-line react/no-unescaped-entities */}
                         Where AI writes faster than you can say "writer's block"
@@ -69,7 +64,7 @@ export default function LoginPage() {
                                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                                     fill="#EA4335"
                                 />
-                                <path d="M1 1h22v22H1z" fill="none" />
+                                <path d="M1 1h22v22H1z" fill="none"/>
                             </svg>
                             Continue with Google
                         </Button>
