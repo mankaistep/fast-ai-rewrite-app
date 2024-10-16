@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </Sheet>
                         <div className="ml-4 lg:ml-0 flex items-center space-x-2">
                             <PenTool className="h-6 w-6"/>
-                            <h3 className="text-xl font-bold">Fast AI Rewrite</h3>
+                            <h3 className="text-xl font-bold">FastAI Rewrite</h3>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -126,7 +126,7 @@ function SidebarContent({ pathname, onLogout, onNavigation }: {
         <div className="flex h-full flex-col py-4">
             <div className="px-4 py-2">
                 <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight invisible">
-                    Fast AI Rewrite
+                    FastAI Rewrite
                 </h2>
             </div>
             <ScrollArea className="flex-1">
