@@ -242,6 +242,9 @@ export default function ChatPage() {
                 }
                 const data = await response.json()
                 setAgents(data)
+                if (data.length > 0) {
+                    setSelectedAgent(data[0])
+                }
             } catch (error) {
                 console.error("Error fetching agents:", error)
             }

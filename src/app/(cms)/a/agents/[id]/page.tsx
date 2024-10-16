@@ -112,7 +112,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
 
             if (isCreateMode) {
                 setTimeout(() => {
-                    router.push("/a/agents");
+                    router.push("/a/agents?created=true");
                 }, 1000)
             }
 

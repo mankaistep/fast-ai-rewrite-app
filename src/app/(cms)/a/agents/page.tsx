@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Activity, Users } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import OnboardingModal2 from "@/components/custom/OnboardingModal2";
 
 type Agent = {
     id: number
@@ -31,13 +32,22 @@ type Agent = {
 
 export default function AgentsPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [agents, setAgents] = useState<Agent[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [showOnboardingModal, setShowOnboardingModal] = useState(false)
 
     useEffect(() => {
         fetchAgents()
     }, [])
+
+    useEffect(() => {
+        const created = searchParams.get('created')
+        if (created === 'true' && agents.length === 1) {
+            setShowOnboardingModal(true)
+        }
+    }, [agents, searchParams])
 
     const fetchAgents = async () => {
         try {
@@ -200,6 +210,10 @@ export default function AgentsPage() {
                 </TableHeader>
                 {renderContent()}
             </Table>
+            <OnboardingModal2
+                isOpen={showOnboardingModal}
+                onClose={() => setShowOnboardingModal(false)}
+            />
         </div>
     )
 }
