@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Users, CheckCircle, BarChart } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Skeleton } from "@/components/ui/skeleton"
+import OnboardingModal from "@/components/custom/OnboardingModal1";
+import {useRouter} from "next/navigation";
 
 type Metric = {
     current: number;
@@ -24,7 +26,22 @@ export default function DashboardPage() {
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { data: session } = useSession();
+    const [showOnboarding, setShowOnboarding] = useState(false)
+
+    const checkForAgents = async () => {
+        try {
+            const response = await fetch('/api/agents')
+            if (!response.ok) {
+                throw new Error('Failed to fetch agents')
+            }
+            const agents = await response.json()
+            if (agents.length === 0) {
+                setShowOnboarding(true)
+            }
+        } catch (error) {
+            console.error('Error checking for agents:', error)
+        }
+    }
 
     useEffect(() => {
         async function fetchMetrics() {
@@ -42,8 +59,8 @@ export default function DashboardPage() {
                 setIsLoading(false);
             }
         }
-
         fetchMetrics();
+        checkForAgents();
     }, []);
 
     function calculatePercentageChange(current: number, previous: number) {
@@ -135,6 +152,9 @@ export default function DashboardPage() {
                     </CardFooter>
                 </Card>
             </div>
+
+            {/* Onboarding Modal */}
+            <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
         </div>
     )
 }

@@ -112,7 +112,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
 
             if (isCreateMode) {
                 setTimeout(() => {
-                    router.push("/a/agents");
+                    router.push("/a/agents?created=true");
                 }, 1000)
             }
 
@@ -256,7 +256,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
                             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50" disabled={isLoading}>
-                                        Delete Agent
+                                        Delete agent
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>

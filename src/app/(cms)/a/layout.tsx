@@ -13,8 +13,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import {Users, Menu, LayoutDashboard, LogOut, MessageSquare, PenTool} from "lucide-react"
-import { signOut, useSession } from "next-auth/react";
+import { Users, Menu, LayoutDashboard, LogOut, MessageSquare, PenTool, Zap, Cpu, Rocket } from "lucide-react"
+import { signOut, useSession } from "next-auth/react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -34,6 +34,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             setUserAvatar(session.user?.image || "https://i.pravatar.cc/300")
         }
     }, [session, status])
+
+
 
     const handleLogout = async () => {
         await signOut({ callbackUrl: "/a/dashboard" })
