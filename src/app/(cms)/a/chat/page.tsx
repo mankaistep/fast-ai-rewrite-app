@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import type { Agent } from "@prisma/client"
 import { useSession } from "next-auth/react"
+import OnboardingModal3 from "@/components/custom/OnboardingModal3";
 
 type Chat = {
     id: string
@@ -61,6 +62,8 @@ export default function ChatPage() {
     const [aiPrompt, setAiPrompt] = useState("")
 
     const [chat, setChat] = useState<Chat[]>([])
+
+    const [showOnboardingModal3, setShowOnboardingModal3] = useState(false)
 
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -252,6 +255,15 @@ export default function ChatPage() {
 
         fetchAgents()
     }, [])
+
+    // Show onboarding modal
+    useEffect(() => {
+        if (chat.length === 1 && agents.length === 1) {
+            setTimeout(() => {
+                setShowOnboardingModal3(true)
+            }, 1200)
+        }
+    }, [chat, agents])
 
     return (
         <>
@@ -445,6 +457,10 @@ export default function ChatPage() {
                     </Card>
                 </div>
             </div>
+            <OnboardingModal3
+                isOpen={showOnboardingModal3}
+                onClose={() => setShowOnboardingModal3(false)}
+            />
             <Toaster />
         </>
     )
