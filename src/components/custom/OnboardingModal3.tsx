@@ -21,7 +21,7 @@ export default function OnboardingModal3({ isOpen, onClose }: OnboardingModal3Pr
         if (isOpen) {
             const timer = setTimeout(() => {
                 setShowModal(true)
-            }, 3000)
+            }, 1000)
 
             return () => clearTimeout(timer)
         }
