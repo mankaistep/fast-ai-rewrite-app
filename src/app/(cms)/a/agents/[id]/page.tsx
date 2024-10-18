@@ -122,6 +122,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
         }
     }
 
+    // Delete agent
     const handleDelete = async () => {
         try {
             const response = await fetch(`/api/agents?id=${agent.id}`, {
