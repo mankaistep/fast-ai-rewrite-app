@@ -37,7 +37,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        Welcome to Fast AI Rewrite!
+                        Welcome to FastAI Rewrite!
                     </motion.div>
                     <div className="flex justify-center space-x-12">
                         <motion.div

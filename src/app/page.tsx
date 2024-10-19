@@ -20,7 +20,13 @@ export default function Component() {
             <header className="py-6 px-4 border-b">
                 <nav className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center space-x-2">
-                        <PenTool className="h-6 w-6 text-indigo-600" />
+                        <Image
+                            src="/favicon.webp"
+                            width="32"
+                            height="32"
+                            alt="app logo"
+                            className="h-6 w-6"
+                        />
                         <div className="text-2xl font-bold text-indigo-600">FastAI Rewrite</div>
                     </div>
                     <Button variant="outline" className="text-indigo-600 border-indigo-600 hover:bg-indigo-50" onClick={handleOpenApp}>

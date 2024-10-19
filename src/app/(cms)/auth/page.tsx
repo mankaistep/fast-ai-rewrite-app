@@ -36,7 +36,13 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-gray-100">
             <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-6 shadow-md">
                 <div className="text-center flex flex-col items-center">
-                    <PenTool className="h-12 w-12"/>
+                    <Image
+                        src="/favicon.webp"
+                        width="32"
+                        height="32"
+                        alt="app logo"
+                        className="h-12 w-12"
+                    />
                     <h1 className="mt-6 text-3xl font-bold text-gray-900">Fast AI Rewrite</h1>
                     <p className="mt-2 text-sm text-gray-600">
                         {/* eslint-disable-next-line react/no-unescaped-entities */}

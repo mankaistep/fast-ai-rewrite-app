@@ -15,6 +15,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { cn } from "@/lib/utils"
 import { Users, Menu, LayoutDashboard, LogOut, MessageSquare, PenTool, Zap, Cpu, Rocket } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
+import Image from "next/image";
+import Link from "next/link";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -71,10 +73,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                                 onNavigation={handleNavigation}/>
                             </SheetContent>
                         </Sheet>
-                        <div className="ml-4 lg:ml-0 flex items-center space-x-2">
-                            <PenTool className="h-6 w-6"/>
-                            <h3 className="text-xl font-bold">FastAI Rewrite</h3>
-                        </div>
+                        <Link href={'/a/dashboard'}>
+                            <div className="ml-4 lg:ml-0 flex items-center space-x-2">
+                                <Image
+                                    src="/favicon.webp"
+                                    width="32"
+                                    height="32"
+                                    alt="app logo"
+                                    className="h-6 w-6"
+                                />
+                                <h3 className="text-xl font-bold">FastAI Rewrite</h3>
+                            </div>
+                        </Link>
                     </div>
                     <div className="flex items-center gap-4">
                         <DropdownMenu>
@@ -82,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <Button variant="ghost" className="p-0">
                                     <div className="flex items-center gap-2">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src={userAvatar} alt="User" />
+                                            <AvatarImage src={userAvatar} alt="User"/>
                                             <AvatarFallback>
                                                 {session?.user?.name?.[0]?.toUpperCase() || 'U'}
                                             </AvatarFallback>
