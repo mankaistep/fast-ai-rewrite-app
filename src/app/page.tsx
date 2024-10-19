@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import Image from 'next/image'
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -33,8 +33,8 @@ export default function Component() {
             <section className="py-20 px-4">
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center">
                     <div className="lg:w-1/2 mb-10 lg:mb-0">
-                        <img
-                            src="https://cdn.shopify.com/s/files/1/0600/1655/8168/files/home-illu-2.png?v=1729093429"
+                        <Image
+                            src="/home-illu-2.png"
                             alt="AI Writing Assistant"
                             width={450}
                             height={400}

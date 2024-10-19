@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -32,7 +32,6 @@ type Agent = {
 
 export default function AgentsPage() {
     const router = useRouter()
-    const searchParams = useSearchParams()
     const [agents, setAgents] = useState<Agent[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -42,12 +41,18 @@ export default function AgentsPage() {
         fetchAgents()
     }, [])
 
-    useEffect(() => {
-        const created = searchParams.get('created')
-        if (created === 'true' && agents.length === 1) {
-            setShowOnboardingModal(true)
-        }
-    }, [agents, searchParams])
+    const SearchParamsHandler = () => {
+        const searchParams = useSearchParams()
+
+        useEffect(() => {
+            const created = searchParams.get('created')
+            if (created === 'true' && agents.length === 1) {
+                setShowOnboardingModal(true)
+            }
+        }, [agents, searchParams])
+
+        return null
+    }
 
     const fetchAgents = async () => {
         try {
@@ -210,6 +215,9 @@ export default function AgentsPage() {
                 </TableHeader>
                 {renderContent()}
             </Table>
+            <Suspense fallback={null}>
+                <SearchParamsHandler />
+            </Suspense>
             <OnboardingModal2
                 isOpen={showOnboardingModal}
                 onClose={() => setShowOnboardingModal(false)}
