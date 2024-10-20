@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Zap, Sparkles, Rocket, Check, Chrome, Globe, PenTool } from 'lucide-react'
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 
 export default function Component() {
     const router = useRouter()
@@ -192,8 +193,11 @@ export default function Component() {
 
             {/* Footer */}
             <footer className="py-6 px-4 bg-gray-100 text-center">
+                <Link href="/privacy-policy">
+                    <p className="text-sm py-2 text-gray-800">Privacy policy</p>
+                </Link>
                 <p className="text-sm text-gray-600">
-                    © {new Date().getFullYear()} FastAI Rewrite. All rights reserved. Made with ❤️ by Nguyen Huy Hoang sieu dep trai.
+                © {new Date().getFullYear()} FastAI Rewrite. All rights reserved. Made with ❤️ by Nguyen Huy Hoang sieu dep trai.
                 </p>
             </footer>
         </div>
