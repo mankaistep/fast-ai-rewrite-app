@@ -113,6 +113,13 @@ export default function ChatPage() {
                 ...prevChat.filter(conv => conv.id !== newConversation.id),
                 { ...newConversation, id: suggestion.activityId, output: suggestion.suggestion, isLoading: false }
             ])
+
+            // Show onboarding modal
+            setTimeout(() => {
+                if (chat.length == 1 && agents.length == 1) {
+                    setShowOnboardingModal3(true)
+                }
+            }, 1500)
         } catch (error) {
             console.error("Error in handleSubmit:", error)
             setChat(prevChat => prevChat.map(conv =>
@@ -255,15 +262,6 @@ export default function ChatPage() {
 
         fetchAgents()
     }, [])
-
-    // Show onboarding modal
-    useEffect(() => {
-        if (chat.length === 1 && agents.length === 1) {
-            setTimeout(() => {
-                setShowOnboardingModal3(true)
-            }, 1200)
-        }
-    }, [chat, agents])
 
     return (
         <>

@@ -29,7 +29,7 @@ export default function OnboardingModal3({ isOpen, onClose }: OnboardingModal3Pr
 
     const handleGetExtension = () => {
         // Replace with actual Chrome extension URL when available
-        window.open('https://chrome.google.com/webstore/category/extensions', '_blank')
+        window.open('https://chromewebstore.google.com/detail/fastai-rewrite/nhlgmeohlelapikefiglfcemlkdbhjdg', '_blank')?.focus()
         onClose()
     }
 

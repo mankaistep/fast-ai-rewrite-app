@@ -67,7 +67,7 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
             'OpenAI-Project': `${OPENAI_PROJECT_ID}`
         },
         body: JSON.stringify({
-            model: "gpt-4o-mini",
+            model: "gpt-4o",
             messages: [
                 {
                     role: "system",
@@ -77,7 +77,6 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
                         the prompt will include the message to rewrite and any notes for the rewrite.
                         if note when rewrite empty, please ignore
                         if previous generated response is empty, please ignore
-                        return the rewritten message only
                     `
                 },
                 ...messages,
@@ -87,6 +86,8 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
                         input: ${original}.
                         prompt: ${prompt}
                         (if the latest request has the same input, the prompt is for the latest response, not input)
+                        (please note that your job is to rewrite the provided text, not to answer)
+                        return the rewritten message only
                     `
                 }
             ],
@@ -100,7 +101,7 @@ export async function sendRewriteRequest(agent: any, original: string, prompt: s
         const response = await fetch('https://api.openai.com/v1/chat/completions', request);
         const data = await response.json();
         const receivedAt = Date.now();
-        const suggestion = data.choices[0].message.content;
+        const suggestion = data.choices[0].message.content.trim();
 
         const usageToken = data.usage?.total_tokens ?? 0
 

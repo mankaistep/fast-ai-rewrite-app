@@ -125,7 +125,9 @@ export default function Component() {
                                     <li>Get instant rewrites without leaving the page</li>
                                 </ol>
                                 <div className="flex justify-start">
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" onClick={() => {
+                                        window.open('https://chromewebstore.google.com/detail/fastai-rewrite/nhlgmeohlelapikefiglfcemlkdbhjdg', '_blank')?.focus()
+                                    }}>
                                         Get extension
                                     </Button>
                                 </div>
