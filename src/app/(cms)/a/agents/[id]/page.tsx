@@ -179,7 +179,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
                                 name="name"
                                 value={agent.name}
                                 onChange={handleInputChange}
-                                placeholder="Enter agent name"
+                                placeholder="Example: Mankai Ng"
                                 required
                             />
                         )}
@@ -194,7 +194,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
                                 name="role"
                                 value={agent.role}
                                 onChange={handleInputChange}
-                                placeholder="Enter agent role"
+                                placeholder="Example: Customer Support Agent"
                                 required
                             />
                         )}
@@ -209,7 +209,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
                                 name="tone"
                                 value={agent.tone}
                                 onChange={handleInputChange}
-                                placeholder="Enter agent tone"
+                                placeholder="Example: Friendly, helpful, professional, etc."
                                 required
                             />
                         )}
@@ -224,7 +224,7 @@ export default function AgentPage({ params }: { params: { id: string } }) {
                                 name="description"
                                 value={agent.description}
                                 onChange={handleInputChange}
-                                placeholder="Enter a customized description for the agent"
+                                placeholder="Example: He's young, energetic, like to use emojis in chat"
                                 rows={4}
                             />
                         )}
