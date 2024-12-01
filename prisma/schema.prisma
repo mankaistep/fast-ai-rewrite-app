@@ -71,3 +71,8 @@ model ChatActivity {
 
   activities Activity[]
 }
+
+model AdminUsers {
+  id    Int     @id @default(autoincrement())
+  email String? @unique
+}
